@@ -1,0 +1,3053 @@
+[
+  {
+    "name": "Switch DOT1X Templates",
+    "tags": [],
+    "templates": [
+      {
+        "name": "DOT1X IBNS 2.0 Interface Configuration",
+        "description": "",
+        "tags": [],
+        "deviceTypes": [
+          {
+            "productFamily": "Switches and Hubs"
+          }
+        ],
+        "softwareType": "IOS",
+        "softwareVariant": "XE",
+        "templateContent": "{% for interface in interfaces %}\n{% if interface.interfaceType == \"Physical\" && interface.portMode == \"trunk\" %}\n\n! @start-ignore-compliance\ninterface {{interface.portName}}\n no access-session monitor\n! @end-ignore-compliance\n\n{% endif %}\n\n{# If the port description has the case insensitive word \"LAN\", then do not change it.  If it does not, then append it to the end. #}\n{% if interface.interfaceType == \"Physical\" && interface.portMode != \"trunk\" && interface.portMode != \"routed\" %}\n{% if  interface.description == \".*([L|l][A|a][N|n]).*\" %} \ninterface {{interface.portName}}\n description {{interface.description}}\n\n{## If the port description is blank, add \"DOT1X HOST LAN PORT\". #}\n{% elif  interface.description == \"\" %} \ninterface {{interface.portName}}\n description DOT1X HOST PORT - lan\n\n{% elif %}\ninterface {{interface.portName}}\n description {{interface.description}} - lan\n{% endif %}\n{% endif %}\n\n{% if dot1x_port_mode == 'open' %}\n{% if interface.interfaceType == \"Physical\" && interface.portMode != \"trunk\" && interface.portMode != \"routed\" %}\ninterface {{interface.portName}}\n ! @start-ignore-compliance\n no switchport port-security\n no switchport port-security mac-address sticky\n no switchport port-security aging time\n no switchport port-security maximum\n switchport mode access\n no dot1x pae authenticator\n no dot1x timeout tx-period 7\n no mab\n no access-session host-mode multi-domain\n no access-session control-direction in\n no access-session closed\n no access-session port-control auto\n no authentication periodic\n no authentication timer reauthenticate server\n no service-policy type control subscriber DOT1X_DEFAULT\n no ip access-group DOT1X_LOW_IMPACT in\n ! @end-ignore-compliance\n switchport mode access\n source template DOT1X_AUTHENTICATION_OPEN\n{% endif %}\n\n{% elif dot1x_port_mode == 'low_impact' %}\n{% if interface.interfaceType == \"Physical\" && interface.portMode != \"trunk\" && interface.portMode != \"routed\" %}\ninterface {{interface.portName}}\n ! @start-ignore-compliance\n no switchport port-security\n no switchport port-security mac-address sticky\n no switchport port-security aging time\n no switchport port-security maximum\n switchport mode access\n no dot1x pae authenticator\n no dot1x timeout tx-period 7\n no mab\n no access-session host-mode multi-domain\n no access-session control-direction in\n no access-session closed\n no access-session port-control auto\n no authentication periodic\n no authentication timer reauthenticate server\n no service-policy type control subscriber DOT1X_DEFAULT\n no ip access-group DOT1X_LOW_IMPACT in\n ! @end-ignore-compliance\n switchport mode access\n ip access-group DOT1X_LOW_IMPACT in\n source template DOT1X_AUTHENTICATION_OPEN\n{% endif %}\n\n{% elif dot1x_port_mode == 'closed' %}\n{% if interface.interfaceType == \"Physical\" && interface.portMode != \"trunk\" && interface.portMode != \"routed\" %}\ninterface {{interface.portName}}\n ! @start-ignore-compliance\n no switchport port-security\n no switchport port-security mac-address sticky\n no switchport port-security aging time\n no switchport port-security maximum\n switchport mode access\n no dot1x pae authenticator\n no dot1x timeout tx-period 7\n no mab\n no access-session host-mode multi-domain\n no access-session control-direction in\n no access-session closed\n no access-session port-control auto\n no authentication periodic\n no authentication timer reauthenticate server\n no service-policy type control subscriber DOT1X_DEFAULT\n no ip access-group DOT1X_LOW_IMPACT in\n ! @end-ignore-compliance\n switchport mode access\n source template DOT1X_AUTHENTICATION_CLOSED\n{% endif %}\n{% endif %}\n\n{% if \"AppGigabitEthernet\" in interface.portName %}\n! @start-ignore-compliance\ninterface {{interface.portName}}\n{#description Shutdown#}\n shutdown\n! @end-ignore-compliance\n{% endif %}\n{% endfor %}",
+        "rollbackTemplateContent": "",
+        "templateParams": [
+          {
+            "parameterName": "dot1x_port_mode",
+            "dataType": "STRING",
+            "defaultValue": null,
+            "description": "CLOSED MODE - Ports are completely locked down \\\nOPEN MODE - Ports allow all traffic even when clients are unauthorized \\\nLOW IMPACT MODE - Ports permit only DNS and DHCP when unauthorized",
+            "required": true,
+            "notParam": false,
+            "paramArray": false,
+            "instructionText": null,
+            "group": null,
+            "order": 2,
+            "customOrder": 0,
+            "selection": {
+              "selectionType": "SINGLE_SELECT",
+              "selectionValues": {
+                "Closed Mode": "closed",
+                "Low Impact Mode": "low_impact",
+                "Open Mode": "open"
+              },
+              "defaultSelectedValues": [
+                "Closed Mode"
+              ],
+              "id": null
+            },
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "",
+            "displayName": "Select Desired Interface 802.1x Port Mode"
+          },
+          {
+            "parameterName": "interfaces",
+            "dataType": "STRING",
+            "defaultValue": null,
+            "description": null,
+            "required": true,
+            "notParam": false,
+            "paramArray": true,
+            "instructionText": null,
+            "group": null,
+            "order": 1,
+            "customOrder": 0,
+            "selection": {
+              "selectionType": "MULTI_SELECT",
+              "selectionValues": {},
+              "defaultSelectedValues": [],
+              "id": null
+            },
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "{\"provider\":\"Inventory\",\"attributeToDisplay\":\"portName\",\"params\":[{\"type\":\"MANAGED_DEVICE_UUID\",\"scope\":\"RUNTIME\",\"value\":null},{\"type\":\"MANAGED_DEVICE_IP\",\"scope\":\"RUNTIME\",\"value\":null},{\"type\":\"MANAGED_DEVICE_HOSTNAME\",\"scope\":\"RUNTIME\",\"value\":null}],\"value\":null,\"source\":\"Inventory\",\"entity\":\"Interface\",\"attribute\":null,\"filterType\":\"\",\"filterValue\":\"\",\"filterByAttribute\":\"\"}",
+            "displayName": null
+          }
+        ],
+        "rollbackTemplateParams": [],
+        "composite": false,
+        "containingTemplates": [],
+        "language": "JINJA",
+        "customParamsOrder": false,
+        "createTime": 1677397630919,
+        "lastUpdateTime": 1677447555050,
+        "latestVersionTime": 1677397630919,
+        "projectName": "Switch DOT1X Templates",
+        "validationErrors": {
+          "templateErrors": [],
+          "rollbackTemplateErrors": [],
+          "templateId": "76076c1f-288d-4a34-8cf6-8aa54dd8c68a",
+          "templateVersion": null
+        },
+        "documentDatabase": false,
+        "projectAssociated": true
+      },
+      {
+        "name": "Disable Trunk Device Tracking",
+        "description": "",
+        "tags": [],
+        "deviceTypes": [
+          {
+            "productFamily": "Switches and Hubs"
+          }
+        ],
+        "softwareType": "IOS",
+        "softwareVariant": "XE",
+        "templateContent": "{% if softwaretype == \"IOS-XE\" %}\n! @start-ignore-compliance\nno device-tracking logging packet drop\nno device-tracking logging resolution-veto\nno device-tracking logging theft\n! @end-ignore-compliance\n\ndevice-tracking policy TRUNK\n trusted-port\n device-role switch\n no protocol udp\n tracking disable\n{% for interface in __interface %}\n{% if interface.interfaceType == \"Physical\" && interface.portMode == \"trunk\" %}\ninterface {{ interface.portName }}\n device-tracking attach-policy TRUNK\n{% endif %}\n{% endfor %}\n{% elif softwaretype == \"IOS\" %}\n{% for interface in __interface %}\n{% if interface.interfaceType == \"Physical\" && interface.portMode == \"trunk\" %}\ninterface {{ interface.portName }}\n ip device tracking maximum 0\n{% endif %}\n{% endfor %}\n{% endif %}\n",
+        "rollbackTemplateContent": "",
+        "templateParams": [
+          {
+            "parameterName": "__interface",
+            "dataType": "STRING",
+            "defaultValue": null,
+            "description": null,
+            "required": true,
+            "notParam": false,
+            "paramArray": true,
+            "instructionText": null,
+            "group": null,
+            "order": 1,
+            "customOrder": 0,
+            "selection": {
+              "selectionType": "MULTI_SELECT",
+              "selectionValues": {},
+              "defaultSelectedValues": [],
+              "id": null
+            },
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "",
+            "displayName": null
+          },
+          {
+            "parameterName": "softwaretype",
+            "dataType": "STRING",
+            "defaultValue": null,
+            "description": null,
+            "required": true,
+            "notParam": false,
+            "paramArray": false,
+            "instructionText": null,
+            "group": null,
+            "order": 2,
+            "customOrder": 0,
+            "selection": {
+              "selectionType": null,
+              "selectionValues": {},
+              "defaultSelectedValues": [],
+              "id": null
+            },
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "{\"provider\":\"Inventory\",\"attributeToDisplay\":\"managementIpAddress\",\"params\":[{\"type\":\"MANAGED_DEVICE_UUID\",\"scope\":\"RUNTIME\",\"value\":null},{\"type\":\"MANAGED_DEVICE_IP\",\"scope\":\"RUNTIME\",\"value\":null},{\"type\":\"MANAGED_DEVICE_HOSTNAME\",\"scope\":\"RUNTIME\",\"value\":null}],\"value\":null,\"source\":\"Inventory\",\"entity\":\"Device\",\"attribute\":\"softwareType\",\"filterType\":\"\",\"filterValue\":\"\",\"filterByAttribute\":\"\"}",
+            "displayName": null
+          }
+        ],
+        "rollbackTemplateParams": [],
+        "composite": false,
+        "containingTemplates": [],
+        "language": "JINJA",
+        "customParamsOrder": false,
+        "createTime": 1677397630853,
+        "lastUpdateTime": 1677397630853,
+        "latestVersionTime": 1677397630853,
+        "projectName": "Switch DOT1X Templates",
+        "validationErrors": {
+          "templateErrors": [],
+          "rollbackTemplateErrors": [],
+          "templateId": "e5ad8ef0-febd-4f73-a9dd-df5af0781fa8",
+          "templateVersion": null
+        },
+        "documentDatabase": false,
+        "projectAssociated": true
+      },
+      {
+        "name": "DOT1X IBNS 2.0 Switch Configuration v2 - Velocity",
+        "description": "Configure 802.1x support on switch",
+        "tags": [],
+        "deviceTypes": [
+          {
+            "productFamily": "Switches and Hubs"
+          }
+        ],
+        "softwareType": "IOS",
+        "softwareVariant": "XE",
+        "templateContent": "aaa authentication dot1x default group dnac-client-radius-group\naaa authorization network default group dnac-client-radius-group \naaa authorization network dnac-cts-list group dnac-client-radius-group\naaa accounting update newinfo\naaa accounting network default start-stop group dnac-client-radius-group\naaa accounting identity default start-stop group dnac-client-radius-group\n\nradius-server attribute 6 on-for-login-auth\nradius-server attribute 6 support-multiple\nradius-server attribute 8 include-in-access-req\nradius-server attribute 25 access-request include\nradius-server attribute 31 mac format ietf upper-case\nradius-server attribute 31 send nas-port-detail mac-only\n! @start-ignore-compliance\nno radius-server load-balance method least-outstanding ignore-preferred-server\n! @end-ignore-compliance\n\nsnmp-server view DNAC-ACCESS iso included\nsnmp-server group DNACGROUPAuthPriv v3 priv read DNAC-ACCESS write DNAC-ACCESS access 3\nsnmp-server group DNACGROUPAuthPriv v3 priv context vlan- match prefix\n!\ndevice-sensor filter-list dhcp list ISE-DHCP-LIST\n option name host-name\n option name requested-address\n option name parameter-request-list\n option name class-identifier\n option name client-identifier\n\ndevice-sensor filter-spec dhcp include list ISE-DHCP-LIST\n!\nlldp run\ndevice-sensor filter-list lldp list ISE-LLDP-LIST\n tlv name system-name\n tlv name system-description\n\ndevice-sensor filter-spec lldp include list ISE-LLDP-LIST\n!\ndevice-sensor filter-list cdp list ISE-CDP-LIST\n tlv name device-name\n tlv name address-type\n tlv name capabilities-type\n tlv name platform-type\n\ndevice-sensor filter-spec cdp include list ISE-CDP-LIST\n\n\ndevice-sensor notify all-changes\n\n\nno macro auto monitor\n\n! @start-ignore-compliance\nauthentication mac-move permit\nno access-session mac-move deny\n! @end-ignore-compliance\n\nmac address-table notification change interval 0\nmac address-table notification change\n! @start-ignore-compliance\nmac address-table notification mac-move\n! @end-ignore-compliance\n!\nip access-list extended DOT1X_LOW_IMPACT\n10 permit udp any any eq domain\n20 permit tcp any any eq domain\n30 permit udp any eq bootps any\n40 permit udp any any eq bootpc\n50 permit udp any eq bootpc any\n60 deny ip any any\n!\n!\n#INTERACTIVE\nclass-map type control subscriber match-all AAA_SVR_DOWN_AUTHD_HOST<IQ>yes<R>yes\n#ENDS_INTERACTIVE\n\nclass-map type control subscriber match-all AAA_SVR_DOWN_AUTHD_HOST\n match result-type aaa-timeout\n match authorization-status authorized\n!\nclass-map type control subscriber match-all AAA_SVR_DOWN_UNAUTHD_HOST\n match result-type aaa-timeout\n match authorization-status unauthorized\n!\nclass-map type control subscriber match-all DOT1X\n match method dot1x\n!\nclass-map type control subscriber match-all DOT1X_FAILED\n match method dot1x\n match result-type method dot1x authoritative\n!\nclass-map type control subscriber match-all DOT1X_MEDIUM_PRIO\n match authorizing-method-priority gt 20\n!\nclass-map type control subscriber match-all DOT1X_NO_RESP\n match method dot1x\n match result-type method dot1x agent-not-found\n!\nclass-map type control subscriber match-all DOT1X_TIMEOUT\n match method dot1x\n match result-type method dot1x method-timeout\n!\nclass-map type control subscriber match-any IN_CRITICAL_VLAN\n match activated-service-template DEFAULT_CRITICAL_VOICE_TEMPLATE\n!\nclass-map type control subscriber match-all MAB\n match method mab\n!\nclass-map type control subscriber match-all MAB_FAILED\n match method mab\n match result-type method mab authoritative\n!\nclass-map type control subscriber match-none NOT_IN_CRITICAL_VLAN\n match activated-service-template DEFAULT_CRITICAL_VOICE_TEMPLATE\n!\n!\npolicy-map type control subscriber DOT1X_DEFAULT\n event session-started match-all\n  10 class always do-until-failure\n   10 authenticate using dot1x retries 2 retry-time 0 priority 10\n event authentication-failure match-first\n  5 class DOT1X_FAILED do-until-failure\n   10 terminate dot1x\n   20 authenticate using mab priority 20\n  10 class AAA_SVR_DOWN_UNAUTHD_HOST do-until-failure\n   10 activate service-template DEFAULT_CRITICAL_VOICE_TEMPLATE\n   20 authorize\n   30 pause reauthentication\n  20 class AAA_SVR_DOWN_AUTHD_HOST do-until-failure\n   10 pause reauthentication\n   20 authorize\n  30 class DOT1X_NO_RESP do-until-failure\n   10 terminate dot1x\n   20 authenticate using mab priority 20\n  40 class MAB_FAILED do-until-failure\n   10 terminate mab\n   20 authentication-restart 60\n  60 class DOT1X_TIMEOUT do-until-failure\n   10 terminate dot1x\n   20 authenticate using mab priority 20\n  70 class always do-until-failure\n   10 terminate dot1x\n   20 terminate mab\n   30 authentication-restart 60\n event agent-found match-all\n  10 class always do-until-failure\n   10 terminate mab\n   20 authenticate using dot1x retries 2 retry-time 0 priority 10\n event aaa-available match-all\n  10 class IN_CRITICAL_VLAN do-until-failure\n   10 clear-session\n  20 class NOT_IN_CRITICAL_VLAN do-until-failure\n   10 resume reauthentication\n event authentication-success match-all\n  10 class always do-until-failure\n   10 activate service-template DEFAULT_LINKSEC_POLICY_SHOULD_SECURE\n event violation match-all\n  10 class always do-until-failure\n   10 restrict\n!\n## STIG ID: CISC-L2-000020 (CAT I) - The Cisco switch must uniquely identify and authenticate all network-connected endpoint devices before establishing any connection.\n\ntemplate DOT1X_AUTHENTICATION_CLOSED\n dot1x pae authenticator\n dot1x timeout tx-period 7\n mab\n access-session host-mode multi-domain\n access-session control-direction in\n access-session closed\n access-session port-control auto\n authentication periodic\n authentication timer reauthenticate server\n service-policy type control subscriber DOT1X_DEFAULT\n!\ntemplate DOT1X_AUTHENTICATION_OPEN\n dot1x pae authenticator\n dot1x timeout tx-period 7\n mab\n access-session host-mode multi-domain\n access-session control-direction in\n access-session port-control auto\n authentication periodic\n authentication timer reauthenticate server\n service-policy type control subscriber DOT1X_DEFAULT\n!\ndot1x system-auth-control\n!",
+        "rollbackTemplateContent": "",
+        "templateParams": [],
+        "rollbackTemplateParams": [],
+        "composite": false,
+        "containingTemplates": [],
+        "language": "VELOCITY",
+        "customParamsOrder": false,
+        "createTime": 1677397630757,
+        "lastUpdateTime": 1677447611788,
+        "latestVersionTime": 1677397630757,
+        "projectName": "Switch DOT1X Templates",
+        "validationErrors": {
+          "templateErrors": [],
+          "rollbackTemplateErrors": [],
+          "templateId": "cf94afa8-64ce-4025-9a6d-c64ac9f9f74c",
+          "templateVersion": null
+        },
+        "documentDatabase": false,
+        "projectAssociated": true
+      },
+      {
+        "name": "Change Dot1X Port Mode",
+        "description": "",
+        "tags": [],
+        "deviceTypes": [
+          {
+            "productFamily": "Switches and Hubs"
+          }
+        ],
+        "softwareType": "IOS",
+        "softwareVariant": "XE",
+        "templateContent": "{# If the admin selectes \"Closed Mode\", run the interface command to apply the closed auth profile #}\n\n{% if dot1x_port_mode == 'closed' %}\n{% for interface in interfaces %}\n\n{% if \"AppGigabitEthernet\" in interface.portName %}\n! @start-ignore-compliance\ninterface {{interface.portName}}\n{#description Shutdown#}\n!Skipped\n! @end-ignore-compliance\n\n{% elif interface.interfaceType == \"Physical\" && interface.portMode != \"trunk\" && interface.portMode != \"routed\" %}\ninterface {{interface.portName}}\n ! @start-ignore-compliance\n no ip access-group DOT1X_LOW_IMPACT in\n ! @end-ignore-compliance\n source template DOT1X_AUTHENTICATION_CLOSED\n{% endif %}\n{% endfor %}\n{% endif %}\n\n\n{# If the admin selectes \"Low Impact Mode\", run the interface commands to apply the open auth profile #}\n\n\n{% if dot1x_port_mode == 'low_impact' %}\n{% for interface in interfaces %}\n\n{% if \"AppGigabitEthernet\" in interface.portName %}\n! @start-ignore-compliance\ninterface {{interface.portName}}\n{#description Shutdown#}\n!Skipped\n! @end-ignore-compliance\n\n{% elif interface.interfaceType == \"Physical\" && interface.portMode != \"trunk\" && interface.portMode != \"routed\" %}\ninterface {{interface.portName}}\n ip access-group DOT1X_LOW_IMPACT in\n source template DOT1X_AUTHENTICATION_OPEN\n{% endif %}\n{% endfor %}\n{% endif %}\n\n\n{# If the admin selectes \"Open Mode\", run the interface command to apply the open auth profile #}\n\n{% if dot1x_port_mode == 'open' %}\n{% for interface in interfaces %}\n\n{% if \"AppGigabitEthernet\" in interface.portName %}\n! @start-ignore-compliance\ninterface {{interface.portName}}\n{#description Shutdown#}\n!Skipped\n! @end-ignore-compliance\n\n{% elif interface.interfaceType == \"Physical\" && interface.portMode != \"trunk\" && interface.portMode != \"routed\" %}\ninterface {{interface.portName}}\n ! @start-ignore-compliance\n no ip access-group DOT1X_LOW_IMPACT in\n ! @end-ignore-compliance\n source template DOT1X_AUTHENTICATION_OPEN\n{% endif %}\n{% endfor %}\n{% endif %}\n\n{# If the admin selectes \"Remove Dot1X from Interfaces\", run the interface commands to remove Dot1X #}\n\n{% if dot1x_port_mode == 'remove_dot1x' %}\n{% for interface in interfaces %}\n\n{% if \"AppGigabitEthernet\" in interface.portName %}\n! @start-ignore-compliance\ninterface {{interface.portName}}\n{#description Shutdown#}\n!Skipped\n! @end-ignore-compliance\n\n{% elif interface.interfaceType == \"Physical\" && interface.portMode != \"trunk\" && interface.portMode != \"routed\" %}\ninterface {{interface.portName}}\n ! @start-ignore-compliance\n no ip access-group DOT1X_LOW_IMPACT in\n no source template DOT1X_AUTHENTICATION_OPEN\n no source template DOT1X_AUTHENTICATION_CLOSED\n ! @start-ignore-compliance\n{% endif %}\n{% endfor %}\n{% endif %}\n\n",
+        "rollbackTemplateContent": "",
+        "templateParams": [
+          {
+            "parameterName": "interfaces",
+            "dataType": "STRING",
+            "defaultValue": null,
+            "description": "The script will configure only access ports if all interfaces are selected",
+            "required": true,
+            "notParam": false,
+            "paramArray": true,
+            "instructionText": null,
+            "group": null,
+            "order": 1,
+            "customOrder": 2,
+            "selection": {
+              "selectionType": "MULTI_SELECT",
+              "selectionValues": {},
+              "defaultSelectedValues": [],
+              "id": null
+            },
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "{\"provider\":\"Inventory\",\"attributeToDisplay\":\"portName\",\"params\":[{\"type\":\"MANAGED_DEVICE_UUID\",\"scope\":\"RUNTIME\",\"value\":null},{\"type\":\"MANAGED_DEVICE_IP\",\"scope\":\"RUNTIME\",\"value\":null},{\"type\":\"MANAGED_DEVICE_HOSTNAME\",\"scope\":\"RUNTIME\",\"value\":null}],\"value\":null,\"source\":\"Inventory\",\"entity\":\"Interface\",\"attribute\":null,\"filterType\":\"\",\"filterValue\":\"\",\"filterByAttribute\":\"\"}",
+            "displayName": "Select interfaces"
+          },
+          {
+            "parameterName": "dot1x_port_mode",
+            "dataType": "STRING",
+            "defaultValue": null,
+            "description": "CLOSED MODE - Ports are completely locked down \\\nOPEN MODE - Ports allow all traffic even when clients are unauthorized \\\nLOW IMPACT MODE - Ports permit only DNS and DHCP when unauthorized",
+            "required": true,
+            "notParam": false,
+            "paramArray": false,
+            "instructionText": "Choose the port mode to apply",
+            "group": null,
+            "order": 2,
+            "customOrder": 1,
+            "selection": {
+              "selectionType": "SINGLE_SELECT",
+              "selectionValues": {
+                "Closed Mode": "closed",
+                "Low Impact Mode": "low_impact",
+                "Open Mode": "open",
+                "Remove 802.1x From Interfaces": "remove_dot1x"
+              },
+              "defaultSelectedValues": [
+                "Closed Mode"
+              ],
+              "id": null
+            },
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "",
+            "displayName": "Select Port Mode (Default is Closed Mode)"
+          }
+        ],
+        "rollbackTemplateParams": [],
+        "composite": false,
+        "containingTemplates": [],
+        "language": "JINJA",
+        "customParamsOrder": true,
+        "createTime": 1677397630681,
+        "lastUpdateTime": 1677447419930,
+        "latestVersionTime": 1677397630681,
+        "projectName": "Switch DOT1X Templates",
+        "validationErrors": {
+          "templateErrors": [],
+          "rollbackTemplateErrors": [],
+          "templateId": "e18be95b-9ec6-41e1-b44b-88dfa74fb94d",
+          "templateVersion": null
+        },
+        "documentDatabase": false,
+        "projectAssociated": true
+      },
+      {
+        "name": "DOT1X Posture Redirect ACL",
+        "description": "",
+        "tags": [],
+        "deviceTypes": [
+          {
+            "productFamily": "Switches and Hubs"
+          }
+        ],
+        "softwareType": "IOS",
+        "softwareVariant": "XE",
+        "templateContent": "{# The below ACL is OPTIONAL #}\n{# DNA Center will automatically deploy a WEB_REDIRECT_ACL for posture assessment, however it redirects all web traffic. #}\n{# This ACL can be implemented while using the enroll.cisco.com discovery host IP in the ISE Posture profile to prevent user disruption during posture assessment #}\n\n! @start-ignore-compliance\nno ip access-list extended REDIRECT\n! @end-ignore-compliance\n\nip access-list extended REDIRECT\n! @start-ignore-compliance\n remark ISE Server IP Addresses\n 10 deny   ip any host X.X.X.X\n 20 deny   ip any host X.X.X.X\n 30 deny   ip any host X.X.X.X\n 40 deny   ip any host X.X.X.X\n 50 deny   ip any host X.X.X.X\n 60 deny   ip any host X.X.X.X\n 70 deny   ip any host X.X.X.X\n 80 deny   ip any host X.X.X.X\n{# The below IP is for enroll.cisco.com #}\n 90 permit tcp any host 72.163.1.80 eq www\n 100 permit tcp any host 72.163.1.80 eq 443\n 110 permit tcp any host 72.163.1.80 eq 8443\n 120 deny   udp any any eq domain\n 130 deny   udp any eq bootpc any eq bootps\n! @end-ignore-compliance",
+        "rollbackTemplateContent": "",
+        "templateParams": [],
+        "rollbackTemplateParams": [],
+        "composite": false,
+        "containingTemplates": [],
+        "language": "JINJA",
+        "customParamsOrder": false,
+        "createTime": 1677397630616,
+        "lastUpdateTime": 1677447652008,
+        "latestVersionTime": 1677397630616,
+        "projectName": "Switch DOT1X Templates",
+        "validationErrors": {
+          "templateErrors": [],
+          "rollbackTemplateErrors": [],
+          "templateId": "13c375bd-8fca-4ffe-ae92-ee177014e034",
+          "templateVersion": null
+        },
+        "documentDatabase": false,
+        "projectAssociated": true
+      }
+    ],
+    "isDeletable": true
+  },
+  {
+    "name": "Template Sequence",
+    "description": "Container for all ENTN Managed Template Sequences",
+    "tags": [],
+    "templates": [
+      {
+        "name": "Update NTP",
+        "description": "",
+        "tags": [
+          {
+            "id": "fe3fb3bf-d6d3-4353-b1bc-3bc4fbccff0c",
+            "name": "Update NTP"
+          }
+        ],
+        "deviceTypes": [
+          {
+            "productFamily": "Switches and Hubs"
+          },
+          {
+            "productFamily": "Routers"
+          }
+        ],
+        "softwareType": "IOS",
+        "softwareVariant": "XE",
+        "templateContent": "",
+        "rollbackTemplateContent": "",
+        "templateParams": [],
+        "rollbackTemplateParams": [],
+        "composite": true,
+        "containingTemplates": [
+          {
+            "name": "6.1 NTP Authentication",
+            "composite": false,
+            "language": "JINJA",
+            "description": "Configures NTP authentication key",
+            "projectName": "DayN STIG Templates"
+          },
+          {
+            "name": "6.2 NTP Servers",
+            "composite": false,
+            "language": "JINJA",
+            "description": "Add NTP Servers",
+            "projectName": "DayN STIG Templates"
+          }
+        ],
+        "failurePolicy": "CONTINUE_ON_ERROR",
+        "language": "VELOCITY",
+        "customParamsOrder": false,
+        "createTime": 1677397684775,
+        "lastUpdateTime": 1677397684775,
+        "latestVersionTime": 1677397684775,
+        "projectName": "Template Sequence",
+        "validationErrors": {
+          "templateErrors": [],
+          "rollbackTemplateErrors": [],
+          "templateId": "b5b84ee4-c96d-4be8-a341-b0bf3d369c23",
+          "templateVersion": null
+        },
+        "documentDatabase": false,
+        "projectAssociated": true
+      },
+      {
+        "name": "Change Dot1X Port Mode",
+        "description": "",
+        "tags": [
+          {
+            "id": "2985b104-b03c-4bce-ba89-8ac4fffefbda",
+            "name": "Change Dot1X Port Mode"
+          }
+        ],
+        "deviceTypes": [
+          {
+            "productFamily": "Switches and Hubs"
+          }
+        ],
+        "softwareType": "IOS",
+        "softwareVariant": "XE",
+        "templateContent": "",
+        "rollbackTemplateContent": "",
+        "templateParams": [],
+        "rollbackTemplateParams": [],
+        "composite": true,
+        "containingTemplates": [
+          {
+            "name": "Change Dot1X Port Mode",
+            "composite": false,
+            "language": "JINJA",
+            "description": "",
+            "projectName": "Switch DOT1X Templates"
+          }
+        ],
+        "failurePolicy": "CONTINUE_ON_ERROR",
+        "language": "VELOCITY",
+        "customParamsOrder": false,
+        "createTime": 1677397684425,
+        "lastUpdateTime": 1677397684425,
+        "latestVersionTime": 1677397684425,
+        "projectName": "Template Sequence",
+        "validationErrors": {
+          "templateErrors": [],
+          "rollbackTemplateErrors": [],
+          "templateId": "8e727915-4acb-4b5e-98d6-ee1b2822d031",
+          "templateVersion": null
+        },
+        "documentDatabase": false,
+        "projectAssociated": true
+      },
+      {
+        "name": "1 STIG L2 Switch",
+        "description": "Deploys the IOS STIG template",
+        "tags": [
+          {
+            "id": "e79ec981-3e18-4149-bc0a-680222f87538",
+            "name": "1 STIG L2 Switch"
+          }
+        ],
+        "deviceTypes": [
+          {
+            "productFamily": "Switches and Hubs",
+            "productSeries": "Cisco Catalyst 9500 Series Switches"
+          },
+          {
+            "productFamily": "Switches and Hubs",
+            "productSeries": "Cisco Catalyst 2960-CX Series Switches"
+          },
+          {
+            "productFamily": "Switches and Hubs",
+            "productSeries": "Cisco Catalyst 9600 Series Switches"
+          },
+          {
+            "productFamily": "Switches and Hubs",
+            "productSeries": "Cisco Catalyst 2960-Plus Series Switches"
+          },
+          {
+            "productFamily": "Switches and Hubs",
+            "productSeries": "Cisco Catalyst 9300 Series Switches"
+          },
+          {
+            "productFamily": "Switches and Hubs",
+            "productSeries": "Cisco Catalyst 9400 Series Switches"
+          },
+          {
+            "productFamily": "Switches and Hubs",
+            "productSeries": "Cisco Catalyst 3650 Series Switches"
+          },
+          {
+            "productFamily": "Switches and Hubs",
+            "productSeries": "Cisco Catalyst 3560-CX Series Switches"
+          },
+          {
+            "productFamily": "Switches and Hubs",
+            "productSeries": "Cisco Catalyst 6500 Series Switches"
+          },
+          {
+            "productFamily": "Switches and Hubs",
+            "productSeries": "Cisco Catalyst 4500-X Series Switches"
+          },
+          {
+            "productFamily": "Switches and Hubs",
+            "productSeries": "Cisco Catalyst 2960 Series Switches"
+          },
+          {
+            "productFamily": "Switches and Hubs",
+            "productSeries": "Cisco Catalyst 6800 Series Switches"
+          },
+          {
+            "productFamily": "Switches and Hubs",
+            "productSeries": "Cisco Catalyst 2960-L Series Switches"
+          },
+          {
+            "productFamily": "Switches and Hubs",
+            "productSeries": "Cisco Catalyst 2960-X/XR Series Switches"
+          },
+          {
+            "productFamily": "Switches and Hubs",
+            "productSeries": "Cisco Catalyst 2960-C Series Switches"
+          },
+          {
+            "productFamily": "Switches and Hubs",
+            "productSeries": "Cisco Catalyst 3850 Series Ethernet Stackable Switch"
+          },
+          {
+            "productFamily": "Switches and Hubs",
+            "productSeries": "Cisco Catalyst 1000 Series Switches"
+          },
+          {
+            "productFamily": "Switches and Hubs",
+            "productSeries": "Cisco Catalyst 4500 Series Switches"
+          },
+          {
+            "productFamily": "Switches and Hubs",
+            "productSeries": "Cisco Catalyst 9200 Series Switches"
+          },
+          {
+            "productFamily": "Switches and Hubs",
+            "productSeries": "Cisco Catalyst 3560 Series Switches"
+          }
+        ],
+        "softwareType": "IOS",
+        "softwareVariant": "XE",
+        "templateContent": "",
+        "rollbackTemplateContent": "",
+        "templateParams": [],
+        "rollbackTemplateParams": [],
+        "composite": true,
+        "containingTemplates": [
+          {
+            "name": "1.1 Enable SSHv2",
+            "composite": false,
+            "language": "JINJA",
+            "description": "Enables SSH per STIG",
+            "projectName": "DayN STIG Templates"
+          },
+          {
+            "name": "2.1 Remove old usernames - Velocity",
+            "composite": false,
+            "language": "VELOCITY",
+            "description": "",
+            "projectName": "DayN STIG Templates"
+          },
+          {
+            "name": "2.2 Configure Local Admin User",
+            "composite": false,
+            "language": "JINJA",
+            "description": "",
+            "projectName": "DayN STIG Templates"
+          },
+          {
+            "name": "3.1 Disable Local Services",
+            "composite": false,
+            "language": "JINJA",
+            "description": "",
+            "projectName": "DayN STIG Templates"
+          },
+          {
+            "name": "4.1 IOS-XE Generic Configuration - Velocity",
+            "composite": false,
+            "language": "VELOCITY",
+            "description": "",
+            "projectName": "DayN STIG Templates"
+          },
+          {
+            "name": "5.1 Line Configurations",
+            "composite": false,
+            "language": "JINJA",
+            "description": "",
+            "projectName": "DayN STIG Templates"
+          },
+          {
+            "name": "6.1 NTP Authentication",
+            "composite": false,
+            "language": "JINJA",
+            "description": "Configures NTP authentication key",
+            "projectName": "DayN STIG Templates"
+          },
+          {
+            "name": "6.2 NTP Servers",
+            "composite": false,
+            "language": "JINJA",
+            "description": "Add NTP Servers",
+            "projectName": "DayN STIG Templates"
+          },
+          {
+            "name": "7.1 Login Banner",
+            "composite": false,
+            "language": "VELOCITY",
+            "description": "## STIG ID: CISC-ND-000160 (CAT II) - The Cisco switch must be configured to display the Standard Mandatory DoD Notice and Consent Banner before granting access to the device.",
+            "projectName": "DayN STIG Templates"
+          },
+          {
+            "name": "8.1 Logging Config",
+            "composite": false,
+            "language": "JINJA",
+            "description": "",
+            "projectName": "DayN STIG Templates"
+          },
+          {
+            "name": "9.1 SNMP ACLs",
+            "composite": false,
+            "language": "JINJA",
+            "description": "",
+            "projectName": "DayN STIG Templates"
+          },
+          {
+            "name": "9.2 SNMP Config",
+            "composite": false,
+            "language": "JINJA",
+            "description": "",
+            "projectName": "DayN STIG Templates"
+          },
+          {
+            "name": "10.1 VTY ACL",
+            "composite": false,
+            "language": "JINJA",
+            "description": "",
+            "projectName": "DayN STIG Templates"
+          },
+          {
+            "name": "11.1 Source Interfaces and Management VLAN",
+            "composite": false,
+            "language": "JINJA",
+            "description": "Configured management vlan and sources",
+            "projectName": "DayN STIG Templates"
+          },
+          {
+            "name": "12.1 IP DHCP Snooping",
+            "composite": false,
+            "language": "JINJA",
+            "description": "",
+            "projectName": "Switch DayN Templates"
+          },
+          {
+            "name": "13.1 Switching Configuration",
+            "composite": false,
+            "language": "JINJA",
+            "description": "",
+            "projectName": "Switch DayN Templates"
+          },
+          {
+            "name": "14.1 Final AAA Config",
+            "composite": false,
+            "language": "JINJA",
+            "description": "",
+            "projectName": "DayN STIG Templates"
+          },
+          {
+            "name": "15.1 NETCONF ACL",
+            "composite": false,
+            "language": "JINJA",
+            "description": "",
+            "projectName": "DayN STIG Templates"
+          },
+          {
+            "name": "16.1 STIG Switch Interfaces",
+            "composite": false,
+            "language": "JINJA",
+            "description": "",
+            "projectName": "Switch DayN Templates"
+          },
+          {
+            "name": "16.2 Switch Interface VLAN Config",
+            "composite": false,
+            "language": "JINJA",
+            "description": "",
+            "projectName": "Switch DayN Templates"
+          }
+        ],
+        "failurePolicy": "CONTINUE_ON_ERROR",
+        "language": "VELOCITY",
+        "customParamsOrder": false,
+        "createTime": 1677397680292,
+        "lastUpdateTime": 1677397680292,
+        "latestVersionTime": 1677397680292,
+        "projectName": "Template Sequence",
+        "validationErrors": {
+          "templateErrors": [],
+          "rollbackTemplateErrors": [],
+          "templateId": "5f42ae08-7f40-4c8b-9b1c-a725206bf30c",
+          "templateVersion": null
+        },
+        "documentDatabase": false,
+        "projectAssociated": true
+      },
+      {
+        "name": "Update SNMP",
+        "description": "",
+        "tags": [
+          {
+            "id": "b6d18347-2062-48ec-aa76-a99f74d5b419",
+            "name": "Update SNMP"
+          }
+        ],
+        "deviceTypes": [
+          {
+            "productFamily": "Switches and Hubs"
+          },
+          {
+            "productFamily": "Routers"
+          }
+        ],
+        "softwareType": "IOS",
+        "softwareVariant": "XE",
+        "templateContent": "",
+        "rollbackTemplateContent": "",
+        "templateParams": [],
+        "rollbackTemplateParams": [],
+        "composite": true,
+        "containingTemplates": [
+          {
+            "name": "9.2 SNMP Config",
+            "composite": false,
+            "language": "JINJA",
+            "description": "",
+            "projectName": "DayN STIG Templates"
+          },
+          {
+            "name": "9.1 SNMP ACLs",
+            "composite": false,
+            "language": "JINJA",
+            "description": "",
+            "projectName": "DayN STIG Templates"
+          }
+        ],
+        "failurePolicy": "CONTINUE_ON_ERROR",
+        "language": "VELOCITY",
+        "customParamsOrder": false,
+        "createTime": 1677397677296,
+        "lastUpdateTime": 1677397677296,
+        "latestVersionTime": 1677397677296,
+        "projectName": "Template Sequence",
+        "validationErrors": {
+          "templateErrors": [],
+          "rollbackTemplateErrors": [],
+          "templateId": "187d75f5-f19b-43cf-949b-90302ed80a72",
+          "templateVersion": null
+        },
+        "documentDatabase": false,
+        "projectAssociated": true
+      },
+      {
+        "name": "Update Local User",
+        "description": "Updates the local admin user on the device",
+        "tags": [
+          {
+            "id": "f17cc544-6d2b-4d7c-add6-3189e435b489",
+            "name": "Update Local User"
+          }
+        ],
+        "deviceTypes": [
+          {
+            "productFamily": "Switches and Hubs"
+          },
+          {
+            "productFamily": "Routers"
+          }
+        ],
+        "softwareType": "IOS",
+        "softwareVariant": "XE",
+        "templateContent": "",
+        "rollbackTemplateContent": "",
+        "templateParams": [],
+        "rollbackTemplateParams": [],
+        "composite": true,
+        "containingTemplates": [
+          {
+            "name": "2.1 Remove old usernames - Velocity",
+            "composite": false,
+            "language": "VELOCITY",
+            "description": "",
+            "projectName": "DayN STIG Templates"
+          },
+          {
+            "name": "2.2 Configure Local Admin User",
+            "composite": false,
+            "language": "JINJA",
+            "description": "",
+            "projectName": "DayN STIG Templates"
+          }
+        ],
+        "failurePolicy": "CONTINUE_ON_ERROR",
+        "language": "VELOCITY",
+        "customParamsOrder": false,
+        "createTime": 1677397675509,
+        "lastUpdateTime": 1677397675509,
+        "latestVersionTime": 1677397675509,
+        "projectName": "Template Sequence",
+        "validationErrors": {
+          "templateErrors": [],
+          "rollbackTemplateErrors": [],
+          "templateId": "2a098f52-4388-4b14-a4f7-2285d1004832",
+          "templateVersion": null
+        },
+        "documentDatabase": false,
+        "projectAssociated": true
+      },
+      {
+        "name": "Update VTY ACL",
+        "description": "",
+        "tags": [
+          {
+            "id": "7567ce8e-6853-4615-82ae-5a08d7692c57",
+            "name": "Update VTY ACL"
+          }
+        ],
+        "deviceTypes": [
+          {
+            "productFamily": "Switches and Hubs"
+          },
+          {
+            "productFamily": "Routers"
+          }
+        ],
+        "softwareType": "IOS",
+        "softwareVariant": "XE",
+        "templateContent": "",
+        "rollbackTemplateContent": "",
+        "templateParams": [],
+        "rollbackTemplateParams": [],
+        "composite": true,
+        "containingTemplates": [
+          {
+            "name": "10.1 VTY ACL",
+            "composite": false,
+            "language": "JINJA",
+            "description": "",
+            "projectName": "DayN STIG Templates"
+          }
+        ],
+        "failurePolicy": "CONTINUE_ON_ERROR",
+        "language": "VELOCITY",
+        "customParamsOrder": false,
+        "createTime": 1677397675016,
+        "lastUpdateTime": 1677397675016,
+        "latestVersionTime": 1677397675016,
+        "projectName": "Template Sequence",
+        "validationErrors": {
+          "templateErrors": [],
+          "rollbackTemplateErrors": [],
+          "templateId": "94d20976-1fa1-4ed0-bd25-6c108a5c240a",
+          "templateVersion": null
+        },
+        "documentDatabase": false,
+        "projectAssociated": true
+      },
+      {
+        "name": "2 Dot1X Switch",
+        "description": "",
+        "tags": [
+          {
+            "id": "0fee62a7-2182-4971-8f60-84de3b98ead7",
+            "name": "2 Dot1x Switch"
+          }
+        ],
+        "deviceTypes": [
+          {
+            "productFamily": "Switches and Hubs",
+            "productSeries": "Cisco Catalyst 9500 Series Switches"
+          },
+          {
+            "productFamily": "Switches and Hubs",
+            "productSeries": "Cisco Catalyst 9600 Series Switches"
+          },
+          {
+            "productFamily": "Switches and Hubs",
+            "productSeries": "Cisco Catalyst 3850 Series Ethernet Stackable Switch"
+          },
+          {
+            "productFamily": "Switches and Hubs",
+            "productSeries": "Cisco Catalyst 9300 Series Switches"
+          },
+          {
+            "productFamily": "Switches and Hubs",
+            "productSeries": "Cisco Catalyst 9400 Series Switches"
+          },
+          {
+            "productFamily": "Switches and Hubs",
+            "productSeries": "Cisco Catalyst 3650 Series Switches"
+          },
+          {
+            "productFamily": "Switches and Hubs",
+            "productSeries": "Cisco Catalyst 3560-CX Series Switches"
+          },
+          {
+            "productFamily": "Switches and Hubs",
+            "productSeries": "Cisco Catalyst 9200 Series Switches"
+          },
+          {
+            "productFamily": "Switches and Hubs",
+            "productSeries": "Cisco Catalyst 3560 Series Switches"
+          }
+        ],
+        "softwareType": "IOS",
+        "softwareVariant": "XE",
+        "templateContent": "",
+        "rollbackTemplateContent": "",
+        "templateParams": [],
+        "rollbackTemplateParams": [],
+        "composite": true,
+        "containingTemplates": [
+          {
+            "name": "12.1 IP DHCP Snooping",
+            "composite": false,
+            "language": "JINJA",
+            "description": "",
+            "projectName": "Switch DayN Templates"
+          },
+          {
+            "name": "DOT1X Posture Redirect ACL",
+            "composite": false,
+            "language": "JINJA",
+            "description": "",
+            "projectName": "Switch DOT1X Templates"
+          },
+          {
+            "name": "DOT1X IBNS 2.0 Switch Configuration v2 - Velocity",
+            "composite": false,
+            "language": "VELOCITY",
+            "description": "Configure 802.1x support on switch",
+            "projectName": "Switch DOT1X Templates"
+          },
+          {
+            "name": "DOT1X IBNS 2.0 Interface Configuration",
+            "composite": false,
+            "language": "JINJA",
+            "description": "",
+            "projectName": "Switch DOT1X Templates"
+          },
+          {
+            "name": "Disable Trunk Device Tracking",
+            "composite": false,
+            "language": "JINJA",
+            "description": "",
+            "projectName": "Switch DOT1X Templates"
+          }
+        ],
+        "failurePolicy": "CONTINUE_ON_ERROR",
+        "language": "VELOCITY",
+        "customParamsOrder": false,
+        "createTime": 1677397672658,
+        "lastUpdateTime": 1677397672658,
+        "latestVersionTime": 1677397672658,
+        "projectName": "Template Sequence",
+        "validationErrors": {
+          "templateErrors": [],
+          "rollbackTemplateErrors": [],
+          "templateId": "b6247539-d605-4531-8304-2938a9708a58",
+          "templateVersion": null
+        },
+        "documentDatabase": false,
+        "projectAssociated": true
+      },
+      {
+        "name": "1 STIG Router IOS-XE",
+        "description": "Deploys the IOS STIG template",
+        "tags": [
+          {
+            "id": "b9abe878-0599-4554-81f2-bd41e22153b0",
+            "name": "1 STIG Router IOS-XE"
+          }
+        ],
+        "deviceTypes": [
+          {
+            "productFamily": "Routers",
+            "productSeries": "Cisco Catalyst 8300 Series Edge Platforms"
+          },
+          {
+            "productFamily": "Routers",
+            "productSeries": "Cisco 4000 Series Integrated Services Routers"
+          }
+        ],
+        "softwareType": "IOS",
+        "softwareVariant": "XE",
+        "templateContent": "",
+        "rollbackTemplateContent": "",
+        "templateParams": [],
+        "rollbackTemplateParams": [],
+        "composite": true,
+        "containingTemplates": [
+          {
+            "name": "1.1 Enable SSHv2",
+            "composite": false,
+            "language": "JINJA",
+            "description": "Enables SSH per STIG",
+            "projectName": "DayN STIG Templates"
+          },
+          {
+            "name": "2.1 Remove old usernames - Velocity",
+            "composite": false,
+            "language": "VELOCITY",
+            "description": "",
+            "projectName": "DayN STIG Templates"
+          },
+          {
+            "name": "2.2 Configure Local Admin User",
+            "composite": false,
+            "language": "JINJA",
+            "description": "",
+            "projectName": "DayN STIG Templates"
+          },
+          {
+            "name": "3.1 Disable Local Services",
+            "composite": false,
+            "language": "JINJA",
+            "description": "",
+            "projectName": "DayN STIG Templates"
+          },
+          {
+            "name": "4.1 IOS-XE Generic Configuration - Velocity",
+            "composite": false,
+            "language": "VELOCITY",
+            "description": "",
+            "projectName": "DayN STIG Templates"
+          },
+          {
+            "name": "5.1 Line Configurations",
+            "composite": false,
+            "language": "JINJA",
+            "description": "",
+            "projectName": "DayN STIG Templates"
+          },
+          {
+            "name": "6.1 NTP Authentication",
+            "composite": false,
+            "language": "JINJA",
+            "description": "Configures NTP authentication key",
+            "projectName": "DayN STIG Templates"
+          },
+          {
+            "name": "6.2 NTP Servers",
+            "composite": false,
+            "language": "JINJA",
+            "description": "Add NTP Servers",
+            "projectName": "DayN STIG Templates"
+          },
+          {
+            "name": "7.1 Login Banner",
+            "composite": false,
+            "language": "VELOCITY",
+            "description": "## STIG ID: CISC-ND-000160 (CAT II) - The Cisco switch must be configured to display the Standard Mandatory DoD Notice and Consent Banner before granting access to the device.",
+            "projectName": "DayN STIG Templates"
+          },
+          {
+            "name": "8.1 Logging Config",
+            "composite": false,
+            "language": "JINJA",
+            "description": "",
+            "projectName": "DayN STIG Templates"
+          },
+          {
+            "name": "9.1 SNMP ACLs",
+            "composite": false,
+            "language": "JINJA",
+            "description": "",
+            "projectName": "DayN STIG Templates"
+          },
+          {
+            "name": "9.2 SNMP Config",
+            "composite": false,
+            "language": "JINJA",
+            "description": "",
+            "projectName": "DayN STIG Templates"
+          },
+          {
+            "name": "10.1 VTY ACL",
+            "composite": false,
+            "language": "JINJA",
+            "description": "",
+            "projectName": "DayN STIG Templates"
+          },
+          {
+            "name": "11.1 Source Interfaces and Management VLAN",
+            "composite": false,
+            "language": "JINJA",
+            "description": "Configured management vlan and sources",
+            "projectName": "DayN STIG Templates"
+          },
+          {
+            "name": "14.1 Final AAA Config",
+            "composite": false,
+            "language": "JINJA",
+            "description": "",
+            "projectName": "DayN STIG Templates"
+          },
+          {
+            "name": "15.1 NETCONF ACL",
+            "composite": false,
+            "language": "JINJA",
+            "description": "",
+            "projectName": "DayN STIG Templates"
+          }
+        ],
+        "failurePolicy": "CONTINUE_ON_ERROR",
+        "language": "VELOCITY",
+        "customParamsOrder": false,
+        "createTime": 1677397671428,
+        "lastUpdateTime": 1677397671428,
+        "latestVersionTime": 1677397671428,
+        "projectName": "Template Sequence",
+        "validationErrors": {
+          "templateErrors": [],
+          "rollbackTemplateErrors": [],
+          "templateId": "bb54aa11-b169-4bef-b2be-eee05a9aec52",
+          "templateVersion": null
+        },
+        "documentDatabase": false,
+        "projectAssociated": true
+      }
+    ],
+    "isDeletable": true
+  },
+  {
+    "name": "Site Local Templates",
+    "description": "Templates used to configure unique requirements for local sites",
+    "tags": [],
+    "templates": [
+      {
+        "name": "Site Local Users",
+        "description": "",
+        "tags": [],
+        "deviceTypes": [
+          {
+            "productFamily": "Switches and Hubs"
+          },
+          {
+            "productFamily": "Routers"
+          }
+        ],
+        "softwareType": "IOS",
+        "softwareVariant": "XE",
+        "templateContent": "{# Use SHA256 encrypted password for the secret #}\n\n{% macro site1_user() %}\n! @start-ignore-compliance\n!SITE1\nusername admin.user privilege 0 common-criteria-policy PW_POLICY secret 8 XXXXXXX\n! @end-ignore-compliance\n{% endmacro %}\n\n{% macro site2_user() %}\n! @start-ignore-compliance\n!SITE2\nusername admin.user privilege 0 common-criteria-policy PW_POLICY secret 8 XXXXXXX\n! @end-ignore-compliance\n{% endmacro %}",
+        "rollbackTemplateContent": "",
+        "templateParams": [],
+        "rollbackTemplateParams": [],
+        "composite": false,
+        "containingTemplates": [],
+        "language": "JINJA",
+        "customParamsOrder": false,
+        "createTime": 1677397630182,
+        "lastUpdateTime": 1677445538228,
+        "latestVersionTime": 1677397630183,
+        "projectName": "Site Local Templates",
+        "validationErrors": {
+          "templateErrors": [],
+          "rollbackTemplateErrors": [],
+          "templateId": "9468083a-453a-4cb3-85dc-7fbba3e15589",
+          "templateVersion": null
+        },
+        "documentDatabase": false,
+        "projectAssociated": true
+      },
+      {
+        "name": "SITE1 VTY ACL",
+        "description": "VTY ACL requirements for SITE1",
+        "tags": [],
+        "deviceTypes": [
+          {
+            "productFamily": "Switches and Hubs"
+          },
+          {
+            "productFamily": "Routers"
+          }
+        ],
+        "softwareType": "IOS",
+        "softwareVariant": "XE",
+        "templateContent": "{% macro site1_vty_acl() %}\n! @start-ignore-compliance\nip access-list resequence 5 10 10\n!\n \nip access-list standard 5\n remark SITE1 NETWORK ADMINS\n 1 permit X.X.X.X X.X.X.X log\n 2 permit X.X.X.X X.X.X. log\n!\nip access-list resequence 5 10 10\n! @end-ignore-compliance\n{% endmacro %}",
+        "rollbackTemplateContent": "",
+        "templateParams": [],
+        "rollbackTemplateParams": [],
+        "composite": false,
+        "containingTemplates": [],
+        "language": "JINJA",
+        "customParamsOrder": false,
+        "createTime": 1677397630459,
+        "lastUpdateTime": 1677442644147,
+        "latestVersionTime": 1677397630459,
+        "projectName": "Site Local Templates",
+        "validationErrors": {
+          "templateErrors": [],
+          "rollbackTemplateErrors": [],
+          "templateId": "451d4a6e-e7fd-4d2d-97a5-4eda90532acc",
+          "templateVersion": null
+        },
+        "documentDatabase": false,
+        "projectAssociated": true
+      },
+      {
+        "name": "SITE LOCAL SNMP CONFIGS",
+        "description": "VTY ACL requirements for Sites",
+        "tags": [],
+        "deviceTypes": [
+          {
+            "productFamily": "Switches and Hubs"
+          },
+          {
+            "productFamily": "Routers"
+          }
+        ],
+        "softwareType": "IOS",
+        "softwareVariant": "XE",
+        "templateContent": "{% macro site1_snmp_data() %}\nsnmp-server location City, State\nsnmp-server contact Network Team (Phone: XXX-XXX-XXXX)\n{% endmacro %}\n\n{% macro site2_snmp_data() %}\nsnmp-server location City, State\nsnmp-server contact Network Team (Phone: XXX-XXX-XXXX)\n{% endmacro %}\n",
+        "rollbackTemplateContent": "",
+        "templateParams": [],
+        "rollbackTemplateParams": [],
+        "composite": false,
+        "containingTemplates": [],
+        "language": "JINJA",
+        "customParamsOrder": false,
+        "createTime": 1677397630388,
+        "lastUpdateTime": 1677445000637,
+        "latestVersionTime": 1677397630388,
+        "projectName": "Site Local Templates",
+        "validationErrors": {
+          "templateErrors": [],
+          "rollbackTemplateErrors": [],
+          "templateId": "50d1b08e-68e7-4ae1-bc2f-bf4f0e15ad27",
+          "templateVersion": null
+        },
+        "documentDatabase": false,
+        "projectAssociated": true
+      },
+      {
+        "name": "SITE2 VTY ACL",
+        "description": "VTY ACL requirements for SITE2",
+        "tags": [],
+        "deviceTypes": [
+          {
+            "productFamily": "Switches and Hubs"
+          },
+          {
+            "productFamily": "Routers"
+          }
+        ],
+        "softwareType": "IOS",
+        "templateContent": "{% macro site2_vty_acl() %}\n! @start-ignore-compliance\nip access-list resequence 5 10 10\n!\n \nip access-list standard 5\n remark SITE2 NETWORK ADMINS\n 1 permit X.X.X.X X.X.X.X log\n 2 permit X.X.X.X X.X.X. log\n!\nip access-list resequence 5 10 10\n! @end-ignore-compliance\n{% endmacro %}",
+        "rollbackTemplateContent": "",
+        "templateParams": [],
+        "rollbackTemplateParams": [],
+        "composite": false,
+        "containingTemplates": [],
+        "language": "JINJA",
+        "customParamsOrder": false,
+        "createTime": 1677397630305,
+        "lastUpdateTime": 1677442726213,
+        "latestVersionTime": 1677397630305,
+        "projectName": "Site Local Templates",
+        "validationErrors": {
+          "templateErrors": [],
+          "rollbackTemplateErrors": [],
+          "templateId": "65e1a39d-637f-4181-90c3-df693c817dac",
+          "templateVersion": null
+        },
+        "documentDatabase": false,
+        "projectAssociated": true
+      }
+    ],
+    "isDeletable": true
+  },
+  {
+    "name": "Switch DayN Templates",
+    "description": "Switch Templates",
+    "tags": [],
+    "templates": [
+      {
+        "name": "16.1 STIG Switch Interfaces",
+        "description": "",
+        "tags": [],
+        "deviceTypes": [
+          {
+            "productFamily": "Switches and Hubs"
+          }
+        ],
+        "softwareType": "IOS",
+        "softwareVariant": "XE",
+        "templateContent": "{# CONFIGURE TRUNK INTERFACES #}\n{# STIG ID: CISC-L2-000200 (CAT II) - The Cisco switch must have all trunk links enabled statically. #}\n{# STIG ID: CISC-L2-000230 (CAT II) - The Cisco switch must have the default VLAN pruned from all trunk ports that do not require it. #}\n{# STIG ID: CISC-L2-000260 (CAT II) - The Cisco switch must have the native VLAN assigned to an ID other than the default VLAN for all 802.1q trunk links. #}\n{# STIG ID: CISC-L2-000210 (NOT CONFIGURED CAT II) - The Cisco switch must have all disabled switch ports assigned to an unused VLAN. #}\n\n{# Configuring the native VLAN is optional since it's likely to already be configured. #}\n{% for interface in __interface %}\n{% if interface.interfaceType == \"Physical\" && interface.portMode == \"trunk\" or interface.interfaceType == \"Virtual\" && interface.portMode == \"trunk\" %}\ninterface {{ interface.portName }}\n! @start-ignore-compliance\n switchport\n! @end-ignore-compliance\n switchport mode trunk\n switchport nonegotiate\n! @start-ignore-compliance\n switchport trunk allowed vlan remove 1\n! @end-ignore-compliance\n{% if trunk_native_vlan != \"\" %}\n switchport trunk native vlan {{ trunk_native_vlan }}\n{% endif %}\n{% endif %}\n{% endfor %}\n\n{# STIG ID: CISC-RT-000160 (CAT II) - The Cisco switch must be configured to have IP directed broadcast disabled on all interfaces. #}\n{# STIG ID: CISC-RT-000190 (CAT II) - The Cisco switch must be configured to have Internet Control Message Protocol (ICMP) redirect messages disabled on all external interfaces. #}\n{# ip redirects are being disabled, however this would only be a finding external interfaces #}\n{# ONLY DISABLE IP UNREACHABLES ON EXTERNAL INTERFACES. DO NOT DISABLE THEM WITHIN A CAMPUS NETWORK AS IT WILL BREAK PTMTUD #}\n{# STIG ID: CISC-RT-000170 (CAT II) - The Cisco switch must be configured to have Internet Control Message Protocol (ICMP) unreachable messages disabled on all external interfaces. NOT A FINDING ON INTERNAL INTERFACES #}\n{% for interface in __interface %}\n{% if interface.interfaceType == \"Physical\" && interface.portMode == \"routed\" %}\n\n{% if \"Bluetooth\" in interface.portName %}\n! @start-ignore-compliance\ninterface {{interface.portName}}\n{#description Shutdown#}\n shutdown\n! @end-ignore-compliance\n\n{% else %}\ninterface {{ interface.portName }}\n! @start-ignore-compliance\n no ip directed-broadcast\n! @end-ignore-compliance\n no ip proxy-arp\n no ip redirect\n{% endif %}\n{% endif %}\n{% endfor %}\n\n\n{# CONFIGURE ACCESS INTERFACES #}\n{# STIG ID: CISC-L2-000100 (CAT II) - The Cisco switch must have Bridge Protocol Data Unit (BPDU) Guard enabled on all user-facing or untrusted access switch ports. #}\n{# STIG ID: CISC-L2-000120 (CAT II) - The Cisco switch must have Unknown Unicast Flood Blocking (UUFB) enabled. #}\n{# STIG ID: CISC-L2-000140 (NOT ENABLED - CAT II) - The Cisco switch must have IP Source Guard enabled on all user-facing or untrusted access switch ports. #}\n{# STIG ID: CISC-L2-000160 (CAT III) - The Cisco switch must have Storm Control configured on all host-facing switchports. #}\n{# STIG ID: CISC-L2-000250 (CAT II) - The Cisco switch must have all user-facing or untrusted ports configured as access switch ports. #}\n{# STIG ID: CISC-L2-000270 (CAT III) - The Cisco switch must not have any switchports assigned to the native VLAN. #}\n\n{# convert speed to integer for storm control applies universal access port configuration #}\n{% set Integer = 0 %}\n{# Scrutinize all interfaces #}\n{% for interface in __interface %}\n{% if interface.speed %}\n{% set intspeed = interface.speed|int %}\n{% if interface.interfaceType == \"Physical\" && interface.portMode != \"trunk\" && interface.portMode != \"routed\" %}\ninterface {{ interface.portName }}\n! @start-ignore-compliance\n switchport\n! @end-ignore-compliance\n switchport mode access\n switchport nonegotiate\n switchport block unicast\n no logging event link-status\n no snmp trap link-status\n spanning-tree portfast\n spanning-tree bpdufilter enable\n spanning-tree bpduguard enable\n spanning-tree guard root\n ip dhcp snooping limit rate 5\n{# STIG ID: CISC-L2-000270 -  enable if necessary\n {% if trunk_native_vlan != \"\" %}\n no switchport access vlan {{ trunk_native_vlan }}\n {% endif %}\n#}\n\n{# IP source Guard not applied due to potential negative impact to devices with static IP's. Implement with caution #}\n{# The IP Source Guard feature depends on the entries in the DHCP snooping database or static IP-MAC-VLAN configuration commands to verify IP-to-MAC address bindings. #}\n{# ip verify source #}\n\n{# Apply sorm-control to Gig interfaces #}\n{## NOTE - The below levels are not best practice and should be taylored to your environment ##}\n\n{% if intspeed == 1000000 %}\n! @start-ignore-compliance\n storm-control broadcast level bps 1000000000\n storm-control unicast level bps 1000000000\n! @end-ignore-compliance\n!\n\n{# Apply sorm-control to TenGig interfaces #}\n{% if intspeed == 10000000 %}\n! @start-ignore-compliance\n storm-control broadcast level bps 1000000000\n storm-control unicast level bps 1000000000\n! @end-ignore-compliance\n!\n\n{# Apply sorm-control to FortyGig interfaces #}\n{% if intspeed == 40000000 %}\n! @start-ignore-compliance\n storm-control broadcast level bps 4000000000\n storm-control unicast level bps 4000000000\n! @end-ignore-compliance\n!\n{% endif %}\n{% endif %}\n{% endif %}\n{% endif %}\n{% endif %}\n{% endfor %}\n\n{# STIG ID: CISC-L2-000240 (CAT II) - The Cisco switch must not use the default VLAN for management traffic. #}\ninterface Vlan1\n shutdown\n",
+        "rollbackTemplateContent": "",
+        "templateParams": [
+          {
+            "parameterName": "__interface",
+            "dataType": "STRING",
+            "defaultValue": null,
+            "description": null,
+            "required": true,
+            "notParam": false,
+            "paramArray": true,
+            "instructionText": null,
+            "group": null,
+            "order": 1,
+            "customOrder": 0,
+            "selection": {
+              "selectionType": "MULTI_SELECT",
+              "selectionValues": {},
+              "defaultSelectedValues": [],
+              "id": null
+            },
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "",
+            "displayName": null
+          },
+          {
+            "parameterName": "trunk_native_vlan",
+            "dataType": "STRING",
+            "defaultValue": null,
+            "description": null,
+            "required": false,
+            "notParam": false,
+            "paramArray": false,
+            "instructionText": "Not required if already configured on trunks",
+            "group": null,
+            "order": 2,
+            "customOrder": 0,
+            "selection": {
+              "selectionType": null,
+              "selectionValues": {},
+              "defaultSelectedValues": [],
+              "id": null
+            },
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "",
+            "displayName": "Trunk Native VLAN (optional)"
+          }
+        ],
+        "rollbackTemplateParams": [],
+        "composite": false,
+        "containingTemplates": [],
+        "language": "JINJA",
+        "customParamsOrder": false,
+        "createTime": 1677397645478,
+        "lastUpdateTime": 1677678091826,
+        "latestVersionTime": 1677397645478,
+        "projectName": "Switch DayN Templates",
+        "validationErrors": {
+          "templateErrors": [],
+          "rollbackTemplateErrors": [],
+          "templateId": "ac98d61e-2396-46ce-a3a7-d421975d5c91",
+          "templateVersion": null
+        },
+        "documentDatabase": false,
+        "projectAssociated": true
+      },
+      {
+        "name": "16.2 Switch Interface VLAN Config",
+        "description": "",
+        "tags": [],
+        "deviceTypes": [
+          {
+            "productFamily": "Switches and Hubs"
+          }
+        ],
+        "softwareType": "IOS",
+        "softwareVariant": "XE",
+        "templateContent": "{# Configure the data and voice vlans on all acccess ports of the switch. #}\n{# This will overwrite any current interface vlan configuration and is optional. #}\n\n{% if data_vlan != \"\" %}\nvlan {{ data_vlan }}\n{% if data_vlan_name != \"\" %}\n name {{ data_vlan_name }}\n{% endif %}\n{% endif %}\n\n\n{% if voice_vlan != \"\" %}\nvlan {{ voice_vlan }}\n{% if voice_vlan_name != \"\" %}\n name {{ voice_vlan_name }}\n{% endif %}\n{% endif %}\n\n{% for interface in __interface %}\n{% if interface.interfaceType == \"Physical\" && interface.portMode != \"trunk\" && interface.portMode != \"routed\" %}\n{% if data_vlan != \"\" or voice_vlan != \"\" %}\ninterface {{ interface.portName }}\n{% if data_vlan != \"\" %}\n switchport access vlan {{ data_vlan }}\n{% endif %}\n{% if voice_vlan != \"\" %}\n switchport voice vlan {{ voice_vlan }}\n{% endif %}\n{% endif %}\n{% endif %}\n{% endfor %}\n\n{# Make sure the new vlans are added to any pruned trunks #}\n\n{% for interface in __interface %}\n{% if interface.interfaceType == \"Physical\" && interface.portMode == \"trunk\" or interface.interfaceType == \"Virtual\" && interface.portMode == \"trunk\" %}\n{% if data_vlan != \"\" or voice_vlan != \"\" %}\ninterface {{ interface.portName }}\n{% if data_vlan != \"\" %}\n! @start-ignore-compliance\n switchport trunk allowed vlan add {{ data_vlan }}\n! @end-ignore-compliance\n{% endif %}\n{% if voice_vlan != \"\" %}\n! @start-ignore-compliance\n switchport trunk allowed vlan add {{ voice_vlan }}\n! @end-ignore-compliance\n{% endif %}\n{% endif %}\n{% endif %}\n{% endfor %}\n\n{# STIG ID: CISC-L2-000210 (CAT II) - The Cisco switch must have all disabled switch ports assigned to an unused VLAN. #}\n{% if unusedVLAN != \"\" %}\n! @start-ignore-compliance\nvlan {{ unusedVLAN }}\n name UNUSED_VLAN\n shutdown\n! @end-ignore-compliance\n{% for interface in __interface %}\n{% if interface.interfaceType == \"Physical\" && interface.portMode != \"trunk\" && interface.portMode != \"routed\" && interface.adminStatus == \"DOWN\" %}\n! @start-ignore-compliance\ninterface {{ interface.portName }}\n switchport access vlan {{ unusedVLAN }}\n! @end-ignore-compliance\n{% endif %}\n{% endfor %}\n{% endif %}",
+        "rollbackTemplateContent": "",
+        "templateParams": [
+          {
+            "parameterName": "unusedVLAN",
+            "dataType": "STRING",
+            "defaultValue": null,
+            "description": null,
+            "required": false,
+            "notParam": false,
+            "paramArray": false,
+            "instructionText": "This adds the VLAN and applies it to disabled interfaces",
+            "group": null,
+            "order": 6,
+            "customOrder": 1,
+            "selection": {
+              "selectionType": null,
+              "selectionValues": {},
+              "defaultSelectedValues": [],
+              "id": null
+            },
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "",
+            "displayName": "Unused Inactive VLAN Number (optional)"
+          },
+          {
+            "parameterName": "__interface",
+            "dataType": "STRING",
+            "defaultValue": null,
+            "description": null,
+            "required": true,
+            "notParam": false,
+            "paramArray": true,
+            "instructionText": null,
+            "group": null,
+            "order": 5,
+            "customOrder": 5,
+            "selection": {
+              "selectionType": "MULTI_SELECT",
+              "selectionValues": {},
+              "defaultSelectedValues": [],
+              "id": null
+            },
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "",
+            "displayName": null
+          },
+          {
+            "parameterName": "data_vlan",
+            "dataType": "INTEGER",
+            "defaultValue": null,
+            "description": null,
+            "required": false,
+            "notParam": false,
+            "paramArray": false,
+            "instructionText": "Will overwrite all access interfaces.  Leave blank if already configured on the switch.",
+            "group": null,
+            "order": 1,
+            "customOrder": 2,
+            "selection": {
+              "selectionType": null,
+              "selectionValues": {},
+              "defaultSelectedValues": [],
+              "id": null
+            },
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "",
+            "displayName": "Data VLAN Number (optional)"
+          },
+          {
+            "parameterName": "voice_vlan_name",
+            "dataType": "STRING",
+            "defaultValue": null,
+            "description": null,
+            "required": false,
+            "notParam": false,
+            "paramArray": false,
+            "instructionText": "Leave blank already configured",
+            "group": null,
+            "order": 4,
+            "customOrder": 5,
+            "selection": {
+              "selectionType": null,
+              "selectionValues": {},
+              "defaultSelectedValues": [],
+              "id": null
+            },
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "",
+            "displayName": "Voice VLAN Name"
+          },
+          {
+            "parameterName": "voice_vlan",
+            "dataType": "INTEGER",
+            "defaultValue": null,
+            "description": null,
+            "required": false,
+            "notParam": false,
+            "paramArray": false,
+            "instructionText": "Will overwrite all access interfaces.  Leave blank if already configured on the switch.",
+            "group": null,
+            "order": 3,
+            "customOrder": 4,
+            "selection": {
+              "selectionType": null,
+              "selectionValues": {},
+              "defaultSelectedValues": [],
+              "id": null
+            },
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "",
+            "displayName": "Voice VLAN Number (optional)"
+          },
+          {
+            "parameterName": "data_vlan_name",
+            "dataType": "STRING",
+            "defaultValue": null,
+            "description": null,
+            "required": false,
+            "notParam": false,
+            "paramArray": false,
+            "instructionText": "Leave blank already configured",
+            "group": null,
+            "order": 2,
+            "customOrder": 3,
+            "selection": {
+              "selectionType": null,
+              "selectionValues": {},
+              "defaultSelectedValues": [],
+              "id": null
+            },
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "",
+            "displayName": "Data VLAN Name (optional)"
+          }
+        ],
+        "rollbackTemplateParams": [],
+        "composite": false,
+        "containingTemplates": [],
+        "language": "JINJA",
+        "customParamsOrder": true,
+        "createTime": 1677397645312,
+        "lastUpdateTime": 1677678940839,
+        "latestVersionTime": 1677397645312,
+        "projectName": "Switch DayN Templates",
+        "validationErrors": {
+          "templateErrors": [],
+          "rollbackTemplateErrors": [],
+          "templateId": "662ce23c-29e8-4de5-a384-9ee88c381441",
+          "templateVersion": null
+        },
+        "documentDatabase": false,
+        "projectAssociated": true
+      },
+      {
+        "name": "12.1 IP DHCP Snooping",
+        "description": "",
+        "tags": [],
+        "deviceTypes": [
+          {
+            "productFamily": "Switches and Hubs"
+          }
+        ],
+        "softwareType": "IOS",
+        "softwareVariant": "XE",
+        "templateContent": "{# STIG ID: CISC-L2-000130 - The Cisco switch must have DHCP snooping (CAT II) #}\n{## for all user VLANs to validate DHCP messages from untrusted sources. ##}\n{% if device == \"ACCESS\" %}\nip dhcp snooping vlan 1-4094\nno ip dhcp snooping information option\n{# DHCP snooping database disabled due to stacked switch behavior with diseparate file systems.  Documented in bug ID CSCvc49871 #}\n{# ip dhcp snooping database flash:DHCP_SNOOPING_DB #}\nip dhcp snooping\n\n{% endif %}\n\n\n{% for interface in __interface %}\n{% if device == \"ACCESS\" %}\n{% if interface.interfaceType == \"Physical\" && interface.portMode == \"trunk\" or interface.interfaceType == \"Virtual\" && interface.portMode == \"trunk\" %}\ninterface {{ interface.portName }}\n ip dhcp snooping trust\n\n{% endif %}\n{% endif %}\n{% endfor %}\n",
+        "rollbackTemplateContent": "",
+        "templateParams": [
+          {
+            "parameterName": "device",
+            "dataType": "STRING",
+            "defaultValue": null,
+            "description": null,
+            "required": true,
+            "notParam": false,
+            "paramArray": false,
+            "instructionText": null,
+            "group": null,
+            "order": 1,
+            "customOrder": 0,
+            "selection": {
+              "selectionType": null,
+              "selectionValues": {},
+              "defaultSelectedValues": [],
+              "id": null
+            },
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "{\"provider\":\"Inventory\",\"attributeToDisplay\":\"managementIpAddress\",\"params\":[{\"type\":\"MANAGED_DEVICE_UUID\",\"scope\":\"RUNTIME\",\"value\":null},{\"type\":\"MANAGED_DEVICE_IP\",\"scope\":\"RUNTIME\",\"value\":null},{\"type\":\"MANAGED_DEVICE_HOSTNAME\",\"scope\":\"RUNTIME\",\"value\":null}],\"value\":null,\"source\":\"Inventory\",\"entity\":\"Device\",\"attribute\":\"role\",\"filterType\":\"\",\"filterValue\":\"\",\"filterByAttribute\":\"\"}",
+            "displayName": null
+          },
+          {
+            "parameterName": "__interface",
+            "dataType": "STRING",
+            "defaultValue": null,
+            "description": null,
+            "required": true,
+            "notParam": false,
+            "paramArray": true,
+            "instructionText": null,
+            "group": null,
+            "order": 2,
+            "customOrder": 0,
+            "selection": {
+              "selectionType": "MULTI_SELECT",
+              "selectionValues": {},
+              "defaultSelectedValues": [],
+              "id": null
+            },
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "",
+            "displayName": null
+          }
+        ],
+        "rollbackTemplateParams": [],
+        "composite": false,
+        "containingTemplates": [],
+        "language": "JINJA",
+        "customParamsOrder": false,
+        "createTime": 1677397642559,
+        "lastUpdateTime": 1677445574350,
+        "latestVersionTime": 1677397642559,
+        "projectName": "Switch DayN Templates",
+        "validationErrors": {
+          "templateErrors": [],
+          "rollbackTemplateErrors": [],
+          "templateId": "044ba2d9-cb82-4d34-8575-3e71a9a0d92a",
+          "templateVersion": null
+        },
+        "documentDatabase": false,
+        "projectAssociated": true
+      },
+      {
+        "name": "Import License Usage ACK File",
+        "description": "Pulls the ACK file from the SFTP server and imports it to the switch",
+        "tags": [],
+        "deviceTypes": [
+          {
+            "productFamily": "Switches and Hubs",
+            "productSeries": "Cisco Catalyst 9500 Series Switches"
+          },
+          {
+            "productFamily": "Switches and Hubs",
+            "productSeries": "Cisco Catalyst 9600 Series Switches"
+          },
+          {
+            "productFamily": "Switches and Hubs",
+            "productSeries": "Cisco Catalyst 9300 Series Switches"
+          },
+          {
+            "productFamily": "Switches and Hubs",
+            "productSeries": "Cisco Catalyst 9400 Series Switches"
+          },
+          {
+            "productFamily": "Switches and Hubs",
+            "productSeries": "Cisco Catalyst 9200 Series Switches"
+          }
+        ],
+        "softwareType": "IOS",
+        "softwareVariant": "XE",
+        "templateContent": "#MODE_ENABLE\n#INTERACTIVE\ncopy sftp://$sftpUsername:$sftpPassword@$sftpIPaddress/License/ACK_${hostname}_usage.txt flash:<IQ>ACK_${hostname}_usage.txt<R>ACK_${hostname}_usage.txt\n#ENDS_INTERACTIVE\n\nlicense smart import flash:ACK_${hostname}_usage.txt\n\ndelete /force flash:${hostname}_usage.txt\n\ndelete /force flash:ACK_${hostname}_usage.txt\n\n#MODE_END_ENABLE",
+        "rollbackTemplateContent": "",
+        "templateParams": [
+          {
+            "parameterName": "sftpUsername",
+            "dataType": "STRING",
+            "defaultValue": null,
+            "description": null,
+            "required": true,
+            "notParam": false,
+            "paramArray": false,
+            "instructionText": null,
+            "group": null,
+            "order": 1,
+            "customOrder": 3,
+            "selection": {
+              "selectionType": null,
+              "selectionValues": {},
+              "defaultSelectedValues": [],
+              "id": null
+            },
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "",
+            "displayName": null
+          },
+          {
+            "parameterName": "sftpPassword",
+            "dataType": "STRING",
+            "defaultValue": null,
+            "description": null,
+            "required": true,
+            "notParam": false,
+            "paramArray": false,
+            "instructionText": null,
+            "group": null,
+            "order": 2,
+            "customOrder": 4,
+            "selection": null,
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "",
+            "displayName": null
+          },
+          {
+            "parameterName": "sftpIPaddress",
+            "dataType": "STRING",
+            "defaultValue": null,
+            "description": null,
+            "required": true,
+            "notParam": false,
+            "paramArray": false,
+            "instructionText": null,
+            "group": null,
+            "order": 3,
+            "customOrder": 2,
+            "selection": null,
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "",
+            "displayName": null
+          },
+          {
+            "parameterName": "hostname",
+            "dataType": "STRING",
+            "defaultValue": null,
+            "description": null,
+            "required": true,
+            "notParam": false,
+            "paramArray": false,
+            "instructionText": null,
+            "group": null,
+            "order": 4,
+            "customOrder": 1,
+            "selection": {
+              "selectionType": "SINGLE_SELECT",
+              "selectionValues": {},
+              "defaultSelectedValues": [],
+              "id": null
+            },
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "{\"provider\":\"Inventory\",\"attributeToDisplay\":\"managementIpAddress\",\"params\":[{\"type\":\"MANAGED_DEVICE_UUID\",\"scope\":\"RUNTIME\",\"value\":null},{\"type\":\"MANAGED_DEVICE_IP\",\"scope\":\"RUNTIME\",\"value\":null},{\"type\":\"MANAGED_DEVICE_HOSTNAME\",\"scope\":\"RUNTIME\",\"value\":null}],\"value\":null,\"source\":\"Inventory\",\"entity\":\"Device\",\"attribute\":\"hostname\",\"filterType\":\"\",\"filterValue\":\"\",\"filterByAttribute\":\"\"}",
+            "displayName": null
+          }
+        ],
+        "rollbackTemplateParams": [],
+        "composite": false,
+        "containingTemplates": [],
+        "language": "VELOCITY",
+        "customParamsOrder": true,
+        "createTime": 1677397649719,
+        "lastUpdateTime": 1677397649719,
+        "latestVersionTime": 1677397649719,
+        "projectName": "Switch DayN Templates",
+        "validationErrors": {
+          "templateErrors": [],
+          "rollbackTemplateErrors": [],
+          "templateId": "1ef20b64-b208-44f3-8dd3-c7e619303a8d",
+          "templateVersion": null
+        },
+        "documentDatabase": false,
+        "projectAssociated": true
+      },
+      {
+        "name": "Get License Usage File",
+        "description": "",
+        "tags": [],
+        "deviceTypes": [
+          {
+            "productFamily": "Switches and Hubs",
+            "productSeries": "Cisco Catalyst 9500 Series Switches"
+          },
+          {
+            "productFamily": "Switches and Hubs",
+            "productSeries": "Cisco Catalyst 9600 Series Switches"
+          },
+          {
+            "productFamily": "Switches and Hubs",
+            "productSeries": "Cisco Catalyst 9300 Series Switches"
+          },
+          {
+            "productFamily": "Switches and Hubs",
+            "productSeries": "Cisco Catalyst 9400 Series Switches"
+          },
+          {
+            "productFamily": "Switches and Hubs",
+            "productSeries": "Cisco Catalyst 9200 Series Switches"
+          }
+        ],
+        "softwareType": "IOS",
+        "softwareVariant": "XE",
+        "templateContent": "#MODE_ENABLE\nlicense smart save usage all file flash:${hostname}_usage.txt\n\n\n#INTERACTIVE\ncopy flash:${hostname}_usage.txt sftp://$sftpUsername:$sftpPassword@$sftpIPaddress/License/${hostname}_usage.txt<IQ>$sftpIPaddress<R>$sftpIPaddress<IQ>$sftpUsername<R>$sftpUsername<IQ>License/${hostname}_usage.txt<R>License/${hostname}_usage.txt\n#ENDS_INTERACTIVE\n#MODE_END_ENABLE",
+        "rollbackTemplateContent": "",
+        "templateParams": [
+          {
+            "parameterName": "sftpPassword",
+            "dataType": "STRING",
+            "defaultValue": null,
+            "description": null,
+            "required": true,
+            "notParam": false,
+            "paramArray": false,
+            "instructionText": null,
+            "group": null,
+            "order": 3,
+            "customOrder": 4,
+            "selection": null,
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "",
+            "displayName": null
+          },
+          {
+            "parameterName": "sftpIPaddress",
+            "dataType": "STRING",
+            "defaultValue": null,
+            "description": null,
+            "required": true,
+            "notParam": false,
+            "paramArray": false,
+            "instructionText": null,
+            "group": null,
+            "order": 4,
+            "customOrder": 2,
+            "selection": null,
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "",
+            "displayName": null
+          },
+          {
+            "parameterName": "sftpUsername",
+            "dataType": "STRING",
+            "defaultValue": null,
+            "description": null,
+            "required": true,
+            "notParam": false,
+            "paramArray": false,
+            "instructionText": null,
+            "group": null,
+            "order": 2,
+            "customOrder": 3,
+            "selection": null,
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "",
+            "displayName": null
+          },
+          {
+            "parameterName": "hostname",
+            "dataType": "STRING",
+            "defaultValue": null,
+            "description": null,
+            "required": true,
+            "notParam": false,
+            "paramArray": false,
+            "instructionText": null,
+            "group": null,
+            "order": 1,
+            "customOrder": 1,
+            "selection": {
+              "selectionType": "SINGLE_SELECT",
+              "selectionValues": {},
+              "defaultSelectedValues": [],
+              "id": null
+            },
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "{\"provider\":\"Inventory\",\"attributeToDisplay\":\"managementIpAddress\",\"params\":[{\"type\":\"MANAGED_DEVICE_UUID\",\"scope\":\"RUNTIME\",\"value\":null},{\"type\":\"MANAGED_DEVICE_IP\",\"scope\":\"RUNTIME\",\"value\":null},{\"type\":\"MANAGED_DEVICE_HOSTNAME\",\"scope\":\"RUNTIME\",\"value\":null}],\"value\":null,\"source\":\"Inventory\",\"entity\":\"Device\",\"attribute\":\"hostname\",\"filterType\":\"\",\"filterValue\":\"\",\"filterByAttribute\":\"\"}",
+            "displayName": null
+          }
+        ],
+        "rollbackTemplateParams": [],
+        "composite": false,
+        "containingTemplates": [],
+        "language": "VELOCITY",
+        "customParamsOrder": true,
+        "createTime": 1677397644159,
+        "lastUpdateTime": 1677397644159,
+        "latestVersionTime": 1677397644159,
+        "projectName": "Switch DayN Templates",
+        "validationErrors": {
+          "templateErrors": [],
+          "rollbackTemplateErrors": [],
+          "templateId": "74129108-0f81-46fa-8761-7203b873741a",
+          "templateVersion": null
+        },
+        "documentDatabase": false,
+        "projectAssociated": true
+      },
+      {
+        "name": "13.1 Switching Configuration",
+        "description": "",
+        "tags": [],
+        "deviceTypes": [
+          {
+            "productFamily": "Switches and Hubs"
+          }
+        ],
+        "softwareType": "IOS",
+        "softwareVariant": "XE",
+        "templateContent": "{# Update your VTP version configuration as necessary #}\n! @start-ignore-compliance\nvtp version 2\n! @end-ignore-compliance\nvtp mode transparent\n\n{#  STIG ID: CISC-L2-000030 (CAT II) - The Cisco switch must authenticate all VLAN Trunk Protocol (VTP) messages with a hash function using the most secured cryptographic algorithm available. #}\n\n{% if vtp_password != \"\" %}\n! @start-ignore-compliance\nvtp password {{ vtp_password }}\n! @end-ignore-compliance\n{% endif %}\n\n{# STIG ID: CISC-L2-000180 (CAT II) - The Cisco switch must implement Rapid Spanning Tree Protocol (STP) where #}\n{# STIG ID: CISC-L2-000110 (CAT II) - The Cisco switch must have STP Loop Guard enabled. (CAT II) #}\n{# STIG ID: CISC-L2-000100 (CAT II) - The Cisco switch must have BPDU Guard enabled on all user-facing or untrusted access switch ports. (CAT II) #}\nspanning-tree mode rapid-pvst\nspanning-tree loopguard default\n{% if device == \"ACCESS\" %}\nspanning-tree portfast default\nspanning-tree portfast bpduguard default\nerrdisable recovery cause bpduguard\nerrdisable recovery cause psecure-violation\n{% endif %}\nerrdisable recovery interval 1800\n\n{# STIG ID: CISC-L2-000150 (NOT ENABLED - CAT II) - The Cisco switch must have Dynamic Address Resolution Protocol (ARP) Inspection (DAI) enabled on all user VLANs. #}\n{# DAI depends on the entries in the DHCP snooping binding database to verify IP-to-MAC address bindings in incoming ARP requests and ARP responses. #}\n{# DAI is not applied due to the potential negative impact to hosts with static IP's.  Implement with caution #}\n{# ip arp inspection vlan x,x-x #}\n\n{# STIG ID: CISC-L2-000170 (CAT III) - The Cisco switch must have IGMP or MLD Snooping configured on all VLANs. #}\n{# Enabled by deefault.  This re-enables IGMP snooping in-case it was disabled. #}\n! @start-ignore-compliance\nip igmp snooping\n! @end-ignore-compliance\n\n{# STIG ID: CISC-L2-000190 (CAT II) - The Cisco switch must enable Unidirectional Link Detection (UDLD) to protect against one-way connections. #}\nudld enable",
+        "rollbackTemplateContent": "",
+        "templateParams": [
+          {
+            "parameterName": "vtp_password",
+            "dataType": "STRING",
+            "defaultValue": "vtppassword",
+            "description": null,
+            "required": true,
+            "notParam": false,
+            "paramArray": false,
+            "instructionText": "Required per STIG",
+            "group": null,
+            "order": 1,
+            "customOrder": 0,
+            "selection": {
+              "selectionType": null,
+              "selectionValues": {},
+              "defaultSelectedValues": [],
+              "id": null
+            },
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "",
+            "displayName": "VTP Password"
+          },
+          {
+            "parameterName": "device",
+            "dataType": "STRING",
+            "defaultValue": null,
+            "description": null,
+            "required": true,
+            "notParam": false,
+            "paramArray": false,
+            "instructionText": null,
+            "group": null,
+            "order": 2,
+            "customOrder": 0,
+            "selection": {
+              "selectionType": null,
+              "selectionValues": {},
+              "defaultSelectedValues": [],
+              "id": null
+            },
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "{\"provider\":\"Inventory\",\"attributeToDisplay\":\"managementIpAddress\",\"params\":[{\"type\":\"MANAGED_DEVICE_UUID\",\"scope\":\"RUNTIME\",\"value\":null},{\"type\":\"MANAGED_DEVICE_IP\",\"scope\":\"RUNTIME\",\"value\":null},{\"type\":\"MANAGED_DEVICE_HOSTNAME\",\"scope\":\"RUNTIME\",\"value\":null}],\"value\":null,\"source\":\"Inventory\",\"entity\":\"Device\",\"attribute\":\"role\",\"filterType\":\"\",\"filterValue\":\"\",\"filterByAttribute\":\"\"}",
+            "displayName": null
+          }
+        ],
+        "rollbackTemplateParams": [],
+        "composite": false,
+        "containingTemplates": [],
+        "language": "JINJA",
+        "customParamsOrder": false,
+        "createTime": 1677397643719,
+        "lastUpdateTime": 1677445711356,
+        "latestVersionTime": 1677397643719,
+        "projectName": "Switch DayN Templates",
+        "validationErrors": {
+          "templateErrors": [],
+          "rollbackTemplateErrors": [],
+          "templateId": "992c7c7e-3026-4e37-a0ae-86b50cf7b453",
+          "templateVersion": null
+        },
+        "documentDatabase": false,
+        "projectAssociated": true
+      }
+    ],
+    "isDeletable": true
+  },
+  {
+    "name": "DayN STIG Templates",
+    "description": "Device agnostic STIG Templates",
+    "tags": [],
+    "templates": [
+      {
+        "name": "5.1 Line Configurations",
+        "description": "",
+        "tags": [],
+        "deviceTypes": [
+          {
+            "productFamily": "Switches and Hubs"
+          },
+          {
+            "productFamily": "Routers"
+          }
+        ],
+        "softwareType": "IOS",
+        "softwareVariant": "XE",
+        "templateContent": "line con 0\n exec-timeout 9 59\n logging synchronous\n ! @start-ignore-compliance\n password {{ LinePassword }}\n ! @end-ignore-compliance\n!\n{# STIG ID: CISC-ND-000140 (CAT II) - The Cisco switch must be configured to enforce approved authorizations for controlling the flow of management information within the device based on control policies. #}\n{# STIG ID: CISC-ND-000720 (CAT I) - The Cisco switch must be configured to terminate all network connections associated with device management after 10 minutes of inactivity. #}\nline vty 0 4\n access-class 5 in\n exec-timeout 9 59\n transport input ssh\n ! @start-ignore-compliance\n password {{ LinePassword }}\n no length\n ! @end-ignore-compliance\n!\nline vty 5 15\n access-class 5 in\n exec-timeout 9 59\n transport input ssh\n ! @start-ignore-compliance\n password {{ LinePassword }}\n no length\n ! @end-ignore-compliance\n\n{% if \"9300\" in deviceplatform %}\nline vty 16 31\n access-class 5 in\n exec-timeout 9 59\n transport input ssh\n ! @start-ignore-compliance\n password {{ LinePassword }}\n no length\n ! @end-ignore-compliance\n{% endif %}\n!\n{# STIG ID: CISC-RT-000230 (CAT III) - The Cisco switch must be configured to disable the auxiliary port unless it is connected to a secured modem providing encryption and authentication. #}\n{% if devicefamily.matches(\"Routers\") %}\n! @start-ignore-compliance\nline aux 0\n transport input none\n exec-timeout 0 1\n no exec\n password {{ LinePassword }}\n! @end-ignore-compliance\n{% endif %}\n",
+        "rollbackTemplateContent": "",
+        "templateParams": [
+          {
+            "parameterName": "LinePassword",
+            "dataType": "STRING",
+            "defaultValue": "XXXXXXX",
+            "description": null,
+            "required": true,
+            "notParam": false,
+            "paramArray": false,
+            "instructionText": "Line Password",
+            "group": null,
+            "order": 1,
+            "customOrder": 0,
+            "selection": {
+              "selectionType": null,
+              "selectionValues": {},
+              "defaultSelectedValues": [],
+              "id": null
+            },
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "",
+            "displayName": "Line Passwords"
+          },
+          {
+            "parameterName": "deviceplatform",
+            "dataType": "STRING",
+            "defaultValue": null,
+            "description": null,
+            "required": true,
+            "notParam": false,
+            "paramArray": false,
+            "instructionText": null,
+            "group": null,
+            "order": 2,
+            "customOrder": 0,
+            "selection": {
+              "selectionType": null,
+              "selectionValues": {},
+              "defaultSelectedValues": [],
+              "id": null
+            },
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "{\"provider\":\"Inventory\",\"attributeToDisplay\":\"managementIpAddress\",\"params\":[{\"type\":\"MANAGED_DEVICE_UUID\",\"scope\":\"RUNTIME\",\"value\":null},{\"type\":\"MANAGED_DEVICE_IP\",\"scope\":\"RUNTIME\",\"value\":null},{\"type\":\"MANAGED_DEVICE_HOSTNAME\",\"scope\":\"RUNTIME\",\"value\":null}],\"value\":null,\"source\":\"Inventory\",\"entity\":\"Device\",\"attribute\":\"platformId\",\"filterType\":\"\",\"filterValue\":\"\",\"filterByAttribute\":\"\"}",
+            "displayName": null
+          },
+          {
+            "parameterName": "devicefamily",
+            "dataType": "STRING",
+            "defaultValue": null,
+            "description": null,
+            "required": true,
+            "notParam": false,
+            "paramArray": false,
+            "instructionText": null,
+            "group": null,
+            "order": 3,
+            "customOrder": 0,
+            "selection": {
+              "selectionType": null,
+              "selectionValues": {},
+              "defaultSelectedValues": [],
+              "id": null
+            },
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "{\"provider\":\"Inventory\",\"attributeToDisplay\":\"managementIpAddress\",\"params\":[{\"type\":\"MANAGED_DEVICE_UUID\",\"scope\":\"RUNTIME\",\"value\":null},{\"type\":\"MANAGED_DEVICE_IP\",\"scope\":\"RUNTIME\",\"value\":null},{\"type\":\"MANAGED_DEVICE_HOSTNAME\",\"scope\":\"RUNTIME\",\"value\":null}],\"value\":null,\"source\":\"Inventory\",\"entity\":\"Device\",\"attribute\":\"family\",\"filterType\":\"\",\"filterValue\":\"\",\"filterByAttribute\":\"\"}",
+            "displayName": null
+          }
+        ],
+        "rollbackTemplateParams": [],
+        "composite": false,
+        "containingTemplates": [],
+        "language": "JINJA",
+        "customParamsOrder": false,
+        "createTime": 1677397639444,
+        "lastUpdateTime": 1677444330650,
+        "latestVersionTime": 1677397639444,
+        "projectName": "DayN STIG Templates",
+        "validationErrors": {
+          "templateErrors": [],
+          "rollbackTemplateErrors": [],
+          "templateId": "954b69c9-f430-4b13-a40f-ecd25b3fcb24",
+          "templateVersion": null
+        },
+        "documentDatabase": false,
+        "projectAssociated": true
+      },
+      {
+        "name": "4.1 IOS-XE Generic Configuration - Velocity",
+        "description": "",
+        "tags": [],
+        "deviceTypes": [
+          {
+            "productFamily": "Switches and Hubs"
+          },
+          {
+            "productFamily": "Routers"
+          }
+        ],
+        "softwareType": "IOS",
+        "softwareVariant": "XE",
+        "templateContent": "## STIG ID: CISC-ND-000620 (CAT I) - The Cisco switch must only store cryptographic representations of passwords.\nservice password-encryption\n\n##password encryption aes\n##key config-key password-encrypt \n\nservice sequence-numbers\nservice tcp-keepalives-in\nservice tcp-keepalives-out\nservice timestamps debug datetime msec show-timezone\n## STIG ID: CISC-ND-000280 (CAT II) - The Cisco switch must produce audit records containing information to establish when (date and time) the events occurred.\nservice timestamps log datetime msec show-timezone\n\n## STIG ID: CISC-RT-000080 (CAT II) - The Cisco switch must not be configured to have any feature enabled that calls home to the vendor.\nno call-home\n\n## Creates a variable 'd' to represent a dollar sign in the encrypted enable secret\n! @start-ignore-compliance\n#set ($d = '$')\n## Ensure a sha256 password is used below.  Replace all dollar signs in the password string with ${d}\nenable secret 8 XXXXXXXX\n! @end-ignore-compliance\n\n## Use the below string in lieu of the above if you prefer inputting the enable secret using a variable\n##enable algorithm-type sha256 secret $EnableSecret\n\n## STIG ID: CISC-ND-001260 (CAT II) - The Cisco switch must be configured to generate audit records when successful/unsuccessful logon attempts occur.\n## STIG ID: CISC-RT-000150 (CAT II) - The Cisco switch must be configured to have Gratuitous ARP disabled on all external interfaces.\n## STIG ID: CISC-RT-000235 (CAT II) - The Cisco switch must be configured to have Cisco Express Forwarding enabled.\nip dhcp bootp ignore\nip icmp rate-limit unreachable 1000\nip tcp synwait-time 10\nlogin on-failure log\nlogin on-success log\nno ip gratuitous-arps\nclock timezone GMT 0 0\n! @start-ignore-compliance\nno clock summer-time\nno ip source-route\nip cef distributed\n! @end-ignore-compliance\n## no ip domain lookup - not configured due to required CRL checks\n## no ip name-server - not configured due to required CRL checks\n\n## STIG ID: CISC-ND-000090 (CAT II) - The Cisco switch must be configured to automatically audit account creation.\n## STIG ID: CISC-ND-000100 (CAT II) - The Cisco switch must be configured to automatically audit account modification.\n## STIG ID: CISC-ND-000100 (CAT II) - The Cisco switch must be configured to automatically audit account disabling actions.\n## STIG ID: CISC-ND-000120 (CAT II) - The Cisco switch must be configured to automatically audit account removal actions.\n## STIG ID: CISC-ND-000210 (CAT II) - The Cisco device must be configured to audit all administrator activity.\n## STIG ID: CISC-ND-000330 (CAT II) - The Cisco switch must be configured to generate audit records containing the full-text recording of privileged commands.\n## STIG ID: CISC-ND-000880 (CAT II) - The Cisco switch must be configured to automatically audit account enabling actions.\n## STIG ID: CISC-ND-001250 (CAT II) - The Cisco switch must be configured to generate log records when administrator privileges are deleted.\n## STIG ID: CISC-ND-001270 (CAT II) - The Cisco switch must be configured to generate log records for privileged activities.\n## Archive is disabled for switches due to stacked switch behavior with diseparate file systems.  Documented in bug ID CSCvc49871\n\n#if ($devicefamily.matches(\"Routers\") )\n\n#MODE_ENABLE\n#INTERACTIVE\nmkdir flash:/archived_configs/<IQ>archived_configs<R>archived_configs\n#ENDS_INTERACTIVE\n#MODE_END_ENABLE\n\narchive\n log config\n  logging enable\n! @start-ignore-compliance\n path flash:/archived_configs/\n! @end-ignore-compliance\n#end \n\n## THE BELOW IS LIKELY A DEFAULT CONFIGURATION ON NEWER DEVICES\n## STIG ID: CISC-ND-001220 (CAT II) - The Cisco switch must be configured to protect against known types of denial-of-service (DoS) attacks by employing organization-defined security safeguards. Control-Plane Policing (COPP)\n## STIG ID: CISC-RT-000120 (CAT II) - The Cisco switch must be configured to protect against or limit the effects of denial-of-service (DoS) attacks by employing control plane protection.\n## THE DEVICES ENROLL CERTS WITH DNAC.  THE CONFIG IS NOT PART OF THE TEMPLATES.\n## STIG ID: CISC-ND-001440 (CAT II) - The Cisco switch must be configured to obtain its public key certificates from an appropriate certificate policy through an approved service provider.",
+        "rollbackTemplateContent": "",
+        "templateParams": [
+          {
+            "parameterName": "devicefamily",
+            "dataType": "STRING",
+            "defaultValue": null,
+            "description": null,
+            "required": true,
+            "notParam": false,
+            "paramArray": false,
+            "instructionText": null,
+            "group": null,
+            "order": 1,
+            "customOrder": 1,
+            "selection": {
+              "selectionType": null,
+              "selectionValues": {},
+              "defaultSelectedValues": [],
+              "id": null
+            },
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "{\"provider\":\"Inventory\",\"attributeToDisplay\":\"managementIpAddress\",\"params\":[{\"type\":\"MANAGED_DEVICE_UUID\",\"scope\":\"RUNTIME\",\"value\":null},{\"type\":\"MANAGED_DEVICE_IP\",\"scope\":\"RUNTIME\",\"value\":null},{\"type\":\"MANAGED_DEVICE_HOSTNAME\",\"scope\":\"RUNTIME\",\"value\":null}],\"value\":null,\"source\":\"Inventory\",\"entity\":\"Device\",\"attribute\":\"family\",\"filterType\":\"\",\"filterValue\":\"\",\"filterByAttribute\":\"\"}",
+            "displayName": null
+          }
+        ],
+        "rollbackTemplateParams": [],
+        "composite": false,
+        "containingTemplates": [],
+        "language": "VELOCITY",
+        "customParamsOrder": true,
+        "createTime": 1677397639330,
+        "lastUpdateTime": 1677444197830,
+        "latestVersionTime": 1677397639330,
+        "projectName": "DayN STIG Templates",
+        "validationErrors": {
+          "templateErrors": [],
+          "rollbackTemplateErrors": [],
+          "templateId": "63c5a760-8c8e-4fa3-94f9-6f33c924b4eb",
+          "templateVersion": null
+        },
+        "documentDatabase": false,
+        "projectAssociated": true
+      },
+      {
+        "name": "8.1 Logging Config",
+        "description": "",
+        "tags": [],
+        "deviceTypes": [
+          {
+            "productFamily": "Switches and Hubs"
+          },
+          {
+            "productFamily": "Routers"
+          }
+        ],
+        "softwareType": "IOS",
+        "softwareVariant": "XE",
+        "templateContent": "{# STIG ID: CISC-ND-001000 (CAT II) - The Cisco switch must be configured to generate an alert for all audit failure events. #}\n! @start-ignore-compliance\nlogging on\nlogging trap informational\n! @end-ignore-compliance\n\nlogging userinfo\n{# STIG ID: CISC-ND-000980 (CAT II) - The Cisco switch must be configured to allocate audit record storage capacity in accordance with organization-defined audit record storage requirements. #}\nlogging buffered 10000 informational\nlogging facility local6\n!\nlogin on-failure log\nlogin on-success log\n!\nno logging console\nno logging monitor\n!\n!\n!\n{# Optional\nlogging discriminator CHGNTFY severity includes 5 facility includes SYS mnemonics includes RELOAD|RESTART|CONFIG\n!\n\nlogging host X.X.X.X discriminator CHGNTFY\nlogging host X.X.X.X discriminator CHGNTFY\n#}\n\n{# STIG ID: CISC-ND-001450 (CAT I) - The Cisco switch must be configured to send log data to a central log server for the purpose of forwarding alerts to the administrators and the ISSO. #}\n{# Add Logging - The below provides the ability to leverage different ports for each device family if desired #}\n{% if devicefamily == \"Routers\" %}\nlogging host X.X.X.X transport udp port XXX\n\n{% elif devicefamily == \"Switches and Hubs\" %}\nlogging host X.X.X.X transport udp port XXX\n\n{% endif %}",
+        "rollbackTemplateContent": "",
+        "templateParams": [
+          {
+            "parameterName": "devicefamily",
+            "dataType": "STRING",
+            "defaultValue": null,
+            "description": null,
+            "required": true,
+            "notParam": false,
+            "paramArray": false,
+            "instructionText": null,
+            "group": null,
+            "order": 1,
+            "customOrder": 0,
+            "selection": {
+              "selectionType": null,
+              "selectionValues": {},
+              "defaultSelectedValues": [],
+              "id": null
+            },
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "{\"provider\":\"Inventory\",\"attributeToDisplay\":\"managementIpAddress\",\"params\":[{\"type\":\"MANAGED_DEVICE_UUID\",\"scope\":\"RUNTIME\",\"value\":null},{\"type\":\"MANAGED_DEVICE_IP\",\"scope\":\"RUNTIME\",\"value\":null},{\"type\":\"MANAGED_DEVICE_HOSTNAME\",\"scope\":\"RUNTIME\",\"value\":null}],\"value\":null,\"source\":\"Inventory\",\"entity\":\"Device\",\"attribute\":\"family\",\"filterType\":\"\",\"filterValue\":\"\",\"filterByAttribute\":\"\"}",
+            "displayName": null
+          }
+        ],
+        "rollbackTemplateParams": [],
+        "composite": false,
+        "containingTemplates": [],
+        "language": "JINJA",
+        "customParamsOrder": false,
+        "createTime": 1677397641922,
+        "lastUpdateTime": 1677444595242,
+        "latestVersionTime": 1677397641922,
+        "projectName": "DayN STIG Templates",
+        "validationErrors": {
+          "templateErrors": [],
+          "rollbackTemplateErrors": [],
+          "templateId": "c6a4b714-05b2-47a8-a6ac-ae439b256fdc",
+          "templateVersion": null
+        },
+        "documentDatabase": false,
+        "projectAssociated": true
+      },
+      {
+        "name": "6.1 NTP Authentication",
+        "description": "Configures NTP authentication key",
+        "tags": [],
+        "deviceTypes": [
+          {
+            "productFamily": "Switches and Hubs"
+          },
+          {
+            "productFamily": "Routers"
+          }
+        ],
+        "softwareType": "IOS",
+        "softwareVariant": "XE",
+        "templateContent": "{# STIG ID: CISC-ND-001150 (CAT II) - The Cisco switch must be configured to authenticate Network Time Protocol (NTP) sources using authentication that is cryptographically based. #}\n\n! @start-ignore-compliance\nno ntp\n! @end-ignore-compliance\nntp authenticate\n! @start-ignore-compliance\nntp authentication-key 2 md5 {{ NTPKey }}\n! @end-ignore-compliance\nntp trusted-key 2",
+        "rollbackTemplateContent": "",
+        "templateParams": [
+          {
+            "parameterName": "NTPKey",
+            "dataType": "STRING",
+            "defaultValue": "XXXXXXX",
+            "description": null,
+            "required": true,
+            "notParam": false,
+            "paramArray": false,
+            "instructionText": null,
+            "group": null,
+            "order": 1,
+            "customOrder": 0,
+            "selection": {
+              "selectionType": null,
+              "selectionValues": {},
+              "defaultSelectedValues": [],
+              "id": null
+            },
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "",
+            "displayName": "NTP Authentication Key"
+          }
+        ],
+        "rollbackTemplateParams": [],
+        "composite": false,
+        "containingTemplates": [],
+        "language": "JINJA",
+        "customParamsOrder": false,
+        "createTime": 1677397639806,
+        "lastUpdateTime": 1677444372268,
+        "latestVersionTime": 1677397639806,
+        "projectName": "DayN STIG Templates",
+        "validationErrors": {
+          "templateErrors": [],
+          "rollbackTemplateErrors": [],
+          "templateId": "7b6b028b-a73a-4989-8f37-cd2050aac33a",
+          "templateVersion": null
+        },
+        "documentDatabase": false,
+        "projectAssociated": true
+      },
+      {
+        "name": "1.1 Enable SSHv2",
+        "description": "Enables SSH per STIG",
+        "tags": [],
+        "deviceTypes": [
+          {
+            "productFamily": "Switches and Hubs"
+          },
+          {
+            "productFamily": "Routers"
+          }
+        ],
+        "softwareType": "IOS",
+        "softwareVariant": "XE",
+        "templateContent": "ip domain name domain.com\n\n{# STIG ID: CISC-ND-001200 (CAT I) - The Cisco switch must be configured to use FIPS-validated Keyed-Hash Message Authentication Code (HMAC) to protect the integrity of remote maintenance sessions. #}\n{# STIG ID: CISC-ND-001210 (CAT I) - The Cisco switch must be configured to implement cryptographic mechanisms to protect the confidentiality of remote maintenance sessions. #}\n\nip ssh version 2\nip ssh authentication-retries 2\nip ssh time-out 10\n! @start-ignore-compliance\nip ssh dh min size 2048\n! @end-ignore-compliance\nip ssh server algorithm mac hmac-sha2-512 hmac-sha2-256\nip ssh server algorithm encryption aes256-ctr aes192-ctr aes128-ctr\nip ssh server algorithm kex diffie-hellman-group14-sha1\n\n! @start-ignore-compliance\nno ip ssh rsa keypair-name\ncrypto key generate rsa general-keys modulus 2048\n! @end-ignore-compliance\n",
+        "rollbackTemplateContent": "",
+        "templateParams": [],
+        "rollbackTemplateParams": [],
+        "composite": false,
+        "containingTemplates": [],
+        "language": "JINJA",
+        "customParamsOrder": false,
+        "createTime": 1677397633248,
+        "lastUpdateTime": 1677442236413,
+        "latestVersionTime": 1677397633248,
+        "projectName": "DayN STIG Templates",
+        "validationErrors": {
+          "templateErrors": [],
+          "rollbackTemplateErrors": [],
+          "templateId": "c919d0a6-ab10-4c37-a829-7d3fdf816d50",
+          "templateVersion": null
+        },
+        "documentDatabase": false,
+        "projectAssociated": true
+      },
+      {
+        "name": "15.1 NETCONF ACL",
+        "description": "",
+        "tags": [],
+        "deviceTypes": [
+          {
+            "productFamily": "Switches and Hubs"
+          },
+          {
+            "productFamily": "Routers"
+          }
+        ],
+        "softwareType": "IOS",
+        "softwareVariant": "XE",
+        "templateContent": "netconf-yang\n\n{% if softwaretype == \"IOS-XE\" %}\n! @start-ignore-compliance\nno ip access-list standard NETCONF_DNAC_ACL\n! @end-ignore-compliance\n!\nip access-list standard NETCONF_DNAC_ACL\n!\n! @start-ignore-compliance\n remark DNAC Servers\n permit X.X.X.X log\n permit X.X.X.X log\n permit X.X.X.X log\n!\n deny any log\n!\nip access-list resequence NETCONF_DNAC_ACL 10 10\n! @end-ignore-compliance\n\nnetconf-yang ssh ipv4 access-list name NETCONF_DNAC_ACL\n\n{% else softwaretype == \"IOS\" %}\n! @start-ignore-compliance\nno access-list 55\n! @end-ignore-compliance\n!\nip access-list standard 55\n!\n! @start-ignore-compliance\n remark DNAC Servers\n permit X.X.X.X log\n permit X.X.X.X log\n permit X.X.X.X log\n!\n deny any log\n!\nip access-list resequence 55 10 10\n! @end-ignore-compliance\n\nnetconf ssh acl 55 \n\n{% endif %}",
+        "rollbackTemplateContent": "",
+        "templateParams": [
+          {
+            "parameterName": "softwaretype",
+            "dataType": "STRING",
+            "defaultValue": null,
+            "description": null,
+            "required": true,
+            "notParam": false,
+            "paramArray": false,
+            "instructionText": null,
+            "group": null,
+            "order": 1,
+            "customOrder": 0,
+            "selection": {
+              "selectionType": null,
+              "selectionValues": {},
+              "defaultSelectedValues": [],
+              "id": null
+            },
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "{\"provider\":\"Inventory\",\"attributeToDisplay\":\"managementIpAddress\",\"params\":[{\"type\":\"MANAGED_DEVICE_UUID\",\"scope\":\"RUNTIME\",\"value\":null},{\"type\":\"MANAGED_DEVICE_IP\",\"scope\":\"RUNTIME\",\"value\":null},{\"type\":\"MANAGED_DEVICE_HOSTNAME\",\"scope\":\"RUNTIME\",\"value\":null}],\"value\":null,\"source\":\"Inventory\",\"entity\":\"Device\",\"attribute\":\"softwareType\",\"filterType\":\"\",\"filterValue\":\"\",\"filterByAttribute\":\"\"}",
+            "displayName": null
+          }
+        ],
+        "rollbackTemplateParams": [],
+        "composite": false,
+        "containingTemplates": [],
+        "language": "JINJA",
+        "customParamsOrder": false,
+        "createTime": 1677397632008,
+        "lastUpdateTime": 1677443445421,
+        "latestVersionTime": 1677397632008,
+        "projectName": "DayN STIG Templates",
+        "validationErrors": {
+          "templateErrors": [],
+          "rollbackTemplateErrors": [],
+          "templateId": "6d37650c-f814-40cf-8349-fecd9c046a8e",
+          "templateVersion": null
+        },
+        "documentDatabase": false,
+        "projectAssociated": true
+      },
+      {
+        "name": "2.2 Configure Local Admin User",
+        "description": "",
+        "tags": [],
+        "deviceTypes": [
+          {
+            "productFamily": "Switches and Hubs"
+          },
+          {
+            "productFamily": "Routers"
+          }
+        ],
+        "softwareType": "IOS",
+        "softwareVariant": "XE",
+        "templateContent": "{# STIG ID: CISC-ND-000490 (CAT II) - The Cisco switch must be configured with only one local account to be used as the account of last resort in the event the authentication server is unavailable. #}\n{# STIG ID: CISC-ND-000550 (CAT II) - The Cisco switch must be configured to enforce a minimum 15-character password length. #}\n{# STIG ID: CISC-ND-000570 (CAT II) - The Cisco switch must be configured to enforce password complexity by requiring that at least one upper-case character be used. #}\n{# STIG ID: CISC-ND-000580 (CAT II) - The Cisco switch must be configured to enforce password complexity by requiring that at least one lower-case character be used. #}\n{# STIG ID: CISC-ND-000590 (CAT II) - The Cisco switch must be configured to enforce password complexity by requiring that at least one numeric character be used. #}\n{# STIG ID: CISC-ND-000600 (CAT II) - The Cisco switch must be configured to enforce password complexity by requiring that at least one special character be used. #}\n{# STIG ID: CISC-ND-000610 (CAT II) - The Cisco switch must be configured to require that when a password is changed, the characters are changed in at least eight of the positions within the password. #}\n\n\naaa common-criteria policy PW_POLICY\n min-length 15\n max-length 127\n numeric-count 1\n upper-case 1\n lower-case 1\n special-case 1\n char-changes 8\n\n{# Admin will be presented a dropdown list to select a site for local username and password configuration #}\n{% include \"Site Local Templates/Site Local Users\" %}\n \n{% for site in site_user %}\n{% if site == \"SITE1\" %}\n{{ site1_user() }}\n{% elif site == \"SITE2\" %}\n{{ site2_user() }}\n{% else %}\n{% endif %}\n{% endfor %}\n\n{#  Alternate METHOD that requires users to input password when provisioning\n\n{% if softwareType == \"IOS\" %}\n! @start-ignore-compliance\nusername local.user privilege 0 common-criteria-policy PW_POLICY secret {{ UserSecret }}\nusername local.user algorithm-type sha256 secret {{ UserSecret }}\n! @end-ignore-compliance\n{% else softwareType == \"IOS-XE\" %}\n! @start-ignore-compliance\nusername local.user privilege 0 common-criteria-policy PW_POLICY algorithm-type sha256 secret {{ UserSecret }}\n! @end-ignore-compliance\n{% endif %}\n\n#}",
+        "rollbackTemplateContent": "",
+        "templateParams": [
+          {
+            "parameterName": "site_user",
+            "dataType": "STRING",
+            "defaultValue": null,
+            "description": null,
+            "required": true,
+            "notParam": false,
+            "paramArray": false,
+            "instructionText": null,
+            "group": null,
+            "order": 1,
+            "customOrder": 0,
+            "selection": {
+              "selectionType": "SINGLE_SELECT",
+              "selectionValues": {
+                "SITE1": "SITE1",
+                "SITE2": "SITE2"
+              },
+              "defaultSelectedValues": [],
+              "id": null
+            },
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "",
+            "displayName": "Select Site"
+          }
+        ],
+        "rollbackTemplateParams": [],
+        "composite": false,
+        "containingTemplates": [],
+        "language": "JINJA",
+        "customParamsOrder": false,
+        "createTime": 1677397631008,
+        "lastUpdateTime": 1677443976259,
+        "latestVersionTime": 1677397631008,
+        "projectName": "DayN STIG Templates",
+        "validationErrors": {
+          "templateErrors": [],
+          "rollbackTemplateErrors": [],
+          "templateId": "34590259-d6e8-41d1-988b-6153b3612bd3",
+          "templateVersion": null
+        },
+        "documentDatabase": false,
+        "projectAssociated": true
+      },
+      {
+        "name": "9.1 SNMP ACLs",
+        "description": "",
+        "tags": [],
+        "deviceTypes": [
+          {
+            "productFamily": "Switches and Hubs"
+          },
+          {
+            "productFamily": "Routers"
+          }
+        ],
+        "softwareType": "IOS",
+        "softwareVariant": "XE",
+        "templateContent": "! @start-ignore-compliance\nno access-list 1\n! @end-ignore-compliance\n!\nip access-list standard 1\n!\n! @start-ignore-compliance\n remark SNMP READGroup access\n permit X.X.X.X\n permit X.X.X.X\n permit X.X.X.X\n!\n remark Stealthwatch SMC Servers\n permit X.X.X.X\n permit X.X.X.X\n deny any log\n! @end-ignore-compliance\n!\n! @start-ignore-compliance\nip access-list resequence 1 10 10\n! @end-ignore-compliance\n!\n!\n!\n! @start-ignore-compliance\nno access-list 2\n! @end-ignore-compliance\n!\nip access-list standard 2\n! @start-ignore-compliance\n remark SNMP WRITEgroup access\n permit X.X.X.X\n permit X.X.X.X\n deny any log\n! @end-ignore-compliance\n!\n! @start-ignore-compliance\nip access-list resequence 2 10 10\n! @end-ignore-compliance\n!\n!\n!\n! @start-ignore-compliance\nno access-list 3\n! @end-ignore-compliance\n!\nip access-list standard 3\n! @start-ignore-compliance\n remark DNAC and ISE SNMP access\n!\n remark DNAC Servers\n permit X.X.X.X\n permit X.X.X.X\n permit X.X.X.X\n!\n remark ISE Servers\n permit X.X.X.X\n permit X.X.X.X\n permit X.X.X.X\n permit X.X.X.X\n permit X.X.X.X\n!\n remark PAC ISE Servers\n!\n deny any log\n! @end-ignore-compliance\n!\n! @start-ignore-compliance\nip access-list resequence 3 10 10\n! @end-ignore-compliance\n!\n! @start-ignore-compliance\nno access-list 1\n! @end-ignore-compliance\n!\nip access-list standard 1\n!\n! @start-ignore-compliance\n remark SNMP READGroup access\n permit X.X.X.X\n permit X.X.X.X\n permit X.X.X.X\n!\n remark Stealthwatch SMC Servers\n permit X.X.X.X\n permit X.X.X.X\n deny any log\n! @end-ignore-compliance\n!\n! @start-ignore-compliance\nip access-list resequence 1 10 10\n! @end-ignore-compliance\n!\n!\n!\n! @start-ignore-compliance\nno access-list 2\n! @end-ignore-compliance\n!\nip access-list standard 2\n! @start-ignore-compliance\n remark SNMP WRITEgroup access\n permit X.X.X.X\n permit X.X.X.X\n deny any log\n! @end-ignore-compliance\n!\n! @start-ignore-compliance\nip access-list resequence 2 10 10\n! @end-ignore-compliance\n!\n!\n!\n! @start-ignore-compliance\nno access-list 3\n! @end-ignore-compliance\n!\nip access-list standard 3\n! @start-ignore-compliance\n remark DNAC and ISE SNMP access\n!\n remark DNAC Servers\n permit X.X.X.X\n permit X.X.X.X\n permit X.X.X.X\n!\n remark ISE Servers\n permit X.X.X.X\n permit X.X.X.X\n permit X.X.X.X\n permit X.X.X.X\n permit X.X.X.X\n!\n remark PAC ISE Servers\n!\n deny any log\n! @end-ignore-compliance\n!\n! @start-ignore-compliance\nip access-list resequence 3 10 10\n! @end-ignore-compliance\n!\n",
+        "rollbackTemplateContent": "",
+        "templateParams": [],
+        "rollbackTemplateParams": [],
+        "composite": false,
+        "containingTemplates": [],
+        "language": "JINJA",
+        "customParamsOrder": false,
+        "createTime": 1677397634203,
+        "lastUpdateTime": 1677444709487,
+        "latestVersionTime": 1677397634203,
+        "projectName": "DayN STIG Templates",
+        "validationErrors": {
+          "templateErrors": [],
+          "rollbackTemplateErrors": [],
+          "templateId": "bd7abe4b-e707-491d-bcfe-c415c6a25602",
+          "templateVersion": null
+        },
+        "documentDatabase": false,
+        "projectAssociated": true
+      },
+      {
+        "name": "10.1 VTY ACL",
+        "description": "",
+        "tags": [],
+        "deviceTypes": [
+          {
+            "productFamily": "Switches and Hubs"
+          },
+          {
+            "productFamily": "Routers"
+          }
+        ],
+        "softwareType": "IOS",
+        "softwareVariant": "XE",
+        "templateContent": "{# The code the executes the Site Local templates is at the bottom of this file #}\n{# Base ACL is applied first.  Optional local component/tsoc permit statements subsequently applied #}\n\n! @start-ignore-compliance\nno access-list 5\n! @end-ignore-compliance\n\nip access-list standard 5\n! @start-ignore-compliance\n remark Network Engineers\n permit X.X.X.X 0.0.0.7 log\n remark DNAC Servers\n permit X.X.X.X log\n permit X.X.X.X log\n permit X.X.X.X log\n permit X.X.X.X log\n remark Jump Servers\n permit X.X.X.X log\n permit X.X.X.X log\n permit X.X.X.X log\n permit X.X.X.X log\n remark Network Tools\n permit X.X.X.X log\n permit X.X.X.X log\n permit X.X.X.X log\n permit X.X.X.X log\n deny   any log\n!\nip access-list resequence 5 10 10\n! @end-ignore-compliance\n\n\n{% include \"Site Local Templates/SITE1 VTY ACL\" %}\n{% include \"Site Local Templates/SITE2 VTY ACL\" %}\n{# include \"Site Local Templates/SITE3 VTY ACL\" #}\n{# include \"Site Local Templates/SITE4 VTY ACL\" #}\n{# include \"Site Local Templates/SITE5 VTY ACL\" #}\n\n{# Adds local site permit statements into the VTY ACL based on a dropdown list presented in the GUI during provisioning#}\n{# Multiple sites can be selected during provisioning #}\n\n{% for site in site_vty %}\n{% if site == \"SITE1\" %}\n{{ site1_vty_acl() }}\n{% elif site == \"SITE2\" %}\n{{ site2_vty_acl() }}\n{% else %}\n{% endif %}\n{% endfor %}",
+        "rollbackTemplateContent": "",
+        "templateParams": [
+          {
+            "parameterName": "site_vty",
+            "dataType": "STRING",
+            "defaultValue": null,
+            "description": null,
+            "required": true,
+            "notParam": false,
+            "paramArray": true,
+            "instructionText": "Select one or more sites to be included in the VTY ACL",
+            "group": null,
+            "order": 1,
+            "customOrder": 0,
+            "selection": {
+              "selectionType": "MULTI_SELECT",
+              "selectionValues": {
+                "SITE1": "SITE1",
+                "SITE2": "SITE2"
+              },
+              "defaultSelectedValues": [],
+              "id": null
+            },
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "",
+            "displayName": "Select Site"
+          }
+        ],
+        "rollbackTemplateParams": [],
+        "composite": false,
+        "containingTemplates": [],
+        "language": "JINJA",
+        "customParamsOrder": false,
+        "createTime": 1677397633918,
+        "lastUpdateTime": 1677443061391,
+        "latestVersionTime": 1677397633918,
+        "projectName": "DayN STIG Templates",
+        "validationErrors": {
+          "templateErrors": [],
+          "rollbackTemplateErrors": [],
+          "templateId": "80f8fdd0-3bce-42c7-933b-26986b8e2827",
+          "templateVersion": null
+        },
+        "documentDatabase": false,
+        "projectAssociated": true
+      },
+      {
+        "name": "2.1 Remove old usernames - Velocity",
+        "description": "",
+        "tags": [],
+        "deviceTypes": [
+          {
+            "productFamily": "Switches and Hubs"
+          },
+          {
+            "productFamily": "Routers"
+          }
+        ],
+        "softwareType": "IOS",
+        "softwareVariant": "XE",
+        "templateContent": "## STIG ID: CISC-ND-000490 (CAT II) - The Cisco switch must be configured with only one local account to be used as the account of last resort in the event the authentication server is unavailable.\n\n#INTERACTIVE\n## remove any potential unnecessary users from devices ##\nno username user1<IQ>confirm<R>y\nno username user2<IQ>confirm<R>y\n##Also remove the local dnac.user that may have been used for initial discovery ##\nno username dnac.user<IQ>confirm<R>y\n#ENDS_INTERACTIVE",
+        "rollbackTemplateContent": "",
+        "templateParams": [],
+        "rollbackTemplateParams": [],
+        "composite": false,
+        "containingTemplates": [],
+        "language": "VELOCITY",
+        "customParamsOrder": false,
+        "createTime": 1677397636536,
+        "lastUpdateTime": 1677443494792,
+        "latestVersionTime": 1677397636536,
+        "projectName": "DayN STIG Templates",
+        "validationErrors": {
+          "templateErrors": [],
+          "rollbackTemplateErrors": [],
+          "templateId": "17025dee-ff6a-4613-b9e5-87b3bed530e9",
+          "templateVersion": null
+        },
+        "documentDatabase": false,
+        "projectAssociated": true
+      },
+      {
+        "name": "6.2 NTP Servers",
+        "description": "Add NTP Servers",
+        "tags": [],
+        "deviceTypes": [
+          {
+            "productFamily": "Switches and Hubs"
+          },
+          {
+            "productFamily": "Routers"
+          }
+        ],
+        "softwareType": "IOS",
+        "softwareVariant": "XE",
+        "templateContent": "{# STIG ID: CISC-ND-001030 (CAT II) - The Cisco switch must be configured to synchronize its clock with the primary and secondary time sources using redundant authoritative time sources. #}\n{# STIG ID: CISC-ND-001150 (CAT II) - The Cisco switch must be configured to authenticate Network Time Protocol (NTP) sources using authentication that is cryptographically based. #}\n\n{# Add your NTP servers #}\nntp server X.X.X.X key 2\nntp server X.X.X.X key 2\nntp server X.X.X.X key 2 prefer\nntp server X.X.X.X key 2 prefer\n\n",
+        "rollbackTemplateContent": "",
+        "templateParams": [],
+        "rollbackTemplateParams": [],
+        "composite": false,
+        "containingTemplates": [],
+        "language": "JINJA",
+        "customParamsOrder": false,
+        "createTime": 1677397636207,
+        "lastUpdateTime": 1677444428036,
+        "latestVersionTime": 1677397636207,
+        "projectName": "DayN STIG Templates",
+        "validationErrors": {
+          "templateErrors": [],
+          "rollbackTemplateErrors": [],
+          "templateId": "4292c2f4-feae-4a46-b1db-166e9f1c41d3",
+          "templateVersion": null
+        },
+        "documentDatabase": false,
+        "projectAssociated": true
+      },
+      {
+        "name": "11.1 Source Interfaces and Management VLAN",
+        "description": "Configured management vlan and sources",
+        "tags": [],
+        "deviceTypes": [
+          {
+            "productFamily": "Switches and Hubs"
+          },
+          {
+            "productFamily": "Routers"
+          }
+        ],
+        "softwareType": "IOS",
+        "softwareVariant": "XE",
+        "templateContent": "{# STIG ID: CISC-RT-000160 (CAT II) - The Cisco switch must be configured to have IP directed broadcast disabled on all interfaces. #}\n{# STIG ID: CISC-RT-000190 (CAT II) - The Cisco switch must be configured to have Internet Control Message Protocol (ICMP) redirect messages disabled on all external interfaces. #}\n{# ip redirects are being disabled, however this would only be a finding external interfaces #}\n{# STIG ID: CISC-RT-000380 (CAT II) - The Cisco perimeter switch must be configured to have Proxy ARP disabled on all external interfaces. #}\n{# ip proxy-arp is being disabled, however this would only be a finding external interfaces #}\n\n{% if devicefamily == \"Routers\" %}\ninterface {{ ManagementInterface }}\n  no ip proxy-arp\n  no ip redirects\n ! @start-ignore-compliance\n no ip directed-broadcast\n ! @end-ignore-compliance\n  \nlogging source-interface {{ ManagementInterface }}\n\nflow exporter EXPORT_FLOW_1\n source {{ ManagementInterface }}\n \nntp source {{ ManagementInterface }}\n{% endif %}\n\n{% if devicefamily.matches(\"Switches and Hubs\") %}\ninterface Vlan{{ ManagementVlan }}\n no ip redirects\n no ip proxy-arp\n ! @start-ignore-compliance\n no ip directed-broadcast\n ! @end-ignore-compliance\n  \nlogging source-interface Vlan{{ ManagementVlan }}\n\nflow exporter EXPORTER\n source Vlan{{ ManagementVlan }}\n \nntp source Vlan{{ ManagementVlan }}\n\n{% endif %}\n  \n{# ONLY DISABLE IP UNREACHABLES ON EXTERNAL INTERFACES. DO NOT DISABLE THEM WITHIN A CAMPUS NETWORK AS IT WILL BREAK PTMTUD #}\n{# STIG ID: CISC-RT-000170 (CAT II) - The Cisco switch must be configured to have Internet Control Message Protocol (ICMP) unreachable messages disabled on all external interfaces. NOT A FINDING ON INTERNAL INTERFACES #}",
+        "rollbackTemplateContent": "",
+        "templateParams": [
+          {
+            "parameterName": "ManagementInterface",
+            "dataType": "STRING",
+            "defaultValue": "Loopback0",
+            "description": "Default in Loopback0.  Change if your management interface is different.",
+            "required": true,
+            "notParam": false,
+            "paramArray": false,
+            "instructionText": null,
+            "group": null,
+            "order": 1,
+            "customOrder": 3,
+            "selection": {
+              "selectionType": null,
+              "selectionValues": {},
+              "defaultSelectedValues": [],
+              "id": null
+            },
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "",
+            "displayName": "Management Interface (Routers Only)"
+          },
+          {
+            "parameterName": "devicefamily",
+            "dataType": "STRING",
+            "defaultValue": null,
+            "description": null,
+            "required": true,
+            "notParam": false,
+            "paramArray": false,
+            "instructionText": null,
+            "group": null,
+            "order": 2,
+            "customOrder": 1,
+            "selection": {
+              "selectionType": null,
+              "selectionValues": {},
+              "defaultSelectedValues": [],
+              "id": null
+            },
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "{\"provider\":\"Inventory\",\"attributeToDisplay\":\"managementIpAddress\",\"params\":[{\"type\":\"MANAGED_DEVICE_UUID\",\"scope\":\"RUNTIME\",\"value\":null},{\"type\":\"MANAGED_DEVICE_IP\",\"scope\":\"RUNTIME\",\"value\":null},{\"type\":\"MANAGED_DEVICE_HOSTNAME\",\"scope\":\"RUNTIME\",\"value\":null}],\"value\":null,\"source\":\"Inventory\",\"entity\":\"Device\",\"attribute\":\"family\",\"filterType\":\"\",\"filterValue\":\"\",\"filterByAttribute\":\"\"}",
+            "displayName": null
+          },
+          {
+            "parameterName": "ManagementVlan",
+            "dataType": "INTEGER",
+            "defaultValue": "10",
+            "description": "Change if management VLAN is different than VLAN 10",
+            "required": false,
+            "notParam": false,
+            "paramArray": false,
+            "instructionText": "REQUIRED FOR SWITCHES ONLY",
+            "group": null,
+            "order": 3,
+            "customOrder": 2,
+            "selection": {
+              "selectionType": null,
+              "selectionValues": {},
+              "defaultSelectedValues": [],
+              "id": null
+            },
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "",
+            "displayName": "Management Vlan (Switches Only)"
+          }
+        ],
+        "rollbackTemplateParams": [],
+        "composite": false,
+        "containingTemplates": [],
+        "language": "JINJA",
+        "customParamsOrder": true,
+        "createTime": 1677397634396,
+        "lastUpdateTime": 1677443231319,
+        "latestVersionTime": 1677397634396,
+        "projectName": "DayN STIG Templates",
+        "validationErrors": {
+          "templateErrors": [],
+          "rollbackTemplateErrors": [],
+          "templateId": "fe0e3095-cce7-4601-abcb-be2ba94fa68d",
+          "templateVersion": null
+        },
+        "documentDatabase": false,
+        "projectAssociated": true
+      },
+      {
+        "name": "3.1 Disable Local Services",
+        "description": "",
+        "tags": [],
+        "deviceTypes": [
+          {
+            "productFamily": "Switches and Hubs"
+          },
+          {
+            "productFamily": "Routers"
+          }
+        ],
+        "softwareType": "IOS",
+        "softwareVariant": "XE",
+        "templateContent": "{# STIG ID: CISC-ND-000470 (CAT I) - The Cisco switch must be configured to prohibit the use of all unnecessary and nonsecure functions and services. #}\n{# STIG ID: CISC-RT-000090 (CAT II) - The Cisco switch must not be configured to have any zero-touch deployment feature enabled when connected to an operational network. #}\n\n{# Note: Auto-configuration or zero-touch deployment features can be enabled when the switch is offline for the purpose of image loading or building out the configuration. #}\n{# In addition, this would not be applicable to the provisioning of virtual switches via a software-defined network (SDN) orchestration system. #}\n\n! @start-ignore-compliance\nno service call-home\nno ip finger\nno ip rcmd rcp-enable\nno ip rcmd rsh-enable\nno service config\nno service finger\nno service tcp-small-servers\nno service udp-small-servers\nno service pad\n! @end-ignore-compliance\n\nno ip gratuitous-arps\nno ip http server\nno ip http secure-server\n\n\n\n{% if softwaretype == \"IOS-XE\" %}\n! @start-ignore-compliance\nno ip bootp server\nno ip dns server\n! @end-ignore-compliance\n{% endif %}",
+        "rollbackTemplateContent": "",
+        "templateParams": [
+          {
+            "parameterName": "softwaretype",
+            "dataType": "STRING",
+            "defaultValue": null,
+            "description": null,
+            "required": true,
+            "notParam": false,
+            "paramArray": false,
+            "instructionText": null,
+            "group": null,
+            "order": 1,
+            "customOrder": 0,
+            "selection": {
+              "selectionType": null,
+              "selectionValues": {},
+              "defaultSelectedValues": [],
+              "id": null
+            },
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "{\"provider\":\"Inventory\",\"attributeToDisplay\":\"managementIpAddress\",\"params\":[{\"type\":\"MANAGED_DEVICE_UUID\",\"scope\":\"RUNTIME\",\"value\":null},{\"type\":\"MANAGED_DEVICE_IP\",\"scope\":\"RUNTIME\",\"value\":null},{\"type\":\"MANAGED_DEVICE_HOSTNAME\",\"scope\":\"RUNTIME\",\"value\":null}],\"value\":null,\"source\":\"Inventory\",\"entity\":\"Device\",\"attribute\":\"softwareType\",\"filterType\":\"\",\"filterValue\":\"\",\"filterByAttribute\":\"\"}",
+            "displayName": null
+          }
+        ],
+        "rollbackTemplateParams": [],
+        "composite": false,
+        "containingTemplates": [],
+        "language": "JINJA",
+        "customParamsOrder": false,
+        "createTime": 1677397638711,
+        "lastUpdateTime": 1677444108673,
+        "latestVersionTime": 1677397638711,
+        "projectName": "DayN STIG Templates",
+        "validationErrors": {
+          "templateErrors": [],
+          "rollbackTemplateErrors": [],
+          "templateId": "502304b6-4713-4921-a182-0cf76e8310cb",
+          "templateVersion": null
+        },
+        "documentDatabase": false,
+        "projectAssociated": true
+      },
+      {
+        "name": "14.1 Final AAA Config",
+        "description": "",
+        "tags": [],
+        "deviceTypes": [
+          {
+            "productFamily": "Switches and Hubs"
+          },
+          {
+            "productFamily": "Routers"
+          }
+        ],
+        "softwareType": "IOS",
+        "softwareVariant": "XE",
+        "templateContent": "{## DNAC initially applies additional AAA config to what is represented below. Some may also overlap. ##}\n{## Some may need to be modified for your environment, however the below dnac groups must remain #}\n\n{# STIG ID: CISC-ND-001370 (CAT I) - The Cisco switch must be configured to use an authentication server for the purpose of authenticating users prior to granting administrative access. #}\n\naaa accounting update newinfo\naaa accounting commands 0 default stop-only group dnac-network-tacacs-group\naaa accounting commands 15 default start-stop group dnac-network-tacacs-group\n{#aaa accounting connection default start-stop group dnac-network-tacacs-group#}\naaa accounting system default start-stop group dnac-network-tacacs-group\n{# Required for Netconf TACACS access #}\naaa authentication enable default group dnac-network-tacacs-group none\n\naaa authentication login default group dnac-network-tacacs-group local\n{# Required for Netconf TACACS access #}\naaa authorization exec default group dnac-network-tacacs-group if-authenticated\n\naaa authorization commands 0 default group dnac-network-tacacs-group if-authenticated\naaa authorization commands 15 default group dnac-network-tacacs-group if-authenticated\naaa authorization console\naaa authorization config-commands\n\nline con 0\n authorization exec VTY_author\n login authentication VTY_authen\n \nline vty 0 4\n authorization exec VTY_author\n login authentication VTY_authen\n \nline vty 5 15\n authorization exec VTY_author\n login authentication VTY_authen\n \n{% if \"9300\" in deviceplatform %}\nline vty 16 31\n authorization exec VTY_author\n login authentication VTY_authen\n{% endif %}\n\n{# STIG ID: CISC-ND-000150 (CAT II) - The Cisco switch must be configured to enforce the limit of three consecutive invalid logon attempts, after which time it must lock out the user account from accessing the device for 15 minutes. #}\n{# Enable if desired\nlogin block-for 900 attempts 3 within 120\n#}",
+        "rollbackTemplateContent": "",
+        "templateParams": [
+          {
+            "parameterName": "deviceplatform",
+            "dataType": "STRING",
+            "defaultValue": null,
+            "description": null,
+            "required": true,
+            "notParam": false,
+            "paramArray": false,
+            "instructionText": null,
+            "group": null,
+            "order": 1,
+            "customOrder": 0,
+            "selection": {
+              "selectionType": null,
+              "selectionValues": {},
+              "defaultSelectedValues": [],
+              "id": null
+            },
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "{\"provider\":\"Inventory\",\"attributeToDisplay\":\"managementIpAddress\",\"params\":[{\"type\":\"MANAGED_DEVICE_UUID\",\"scope\":\"RUNTIME\",\"value\":null},{\"type\":\"MANAGED_DEVICE_IP\",\"scope\":\"RUNTIME\",\"value\":null},{\"type\":\"MANAGED_DEVICE_HOSTNAME\",\"scope\":\"RUNTIME\",\"value\":null}],\"value\":null,\"source\":\"Inventory\",\"entity\":\"Device\",\"attribute\":\"platformId\",\"filterType\":\"\",\"filterValue\":\"\",\"filterByAttribute\":\"\"}",
+            "displayName": null
+          }
+        ],
+        "rollbackTemplateParams": [],
+        "composite": false,
+        "containingTemplates": [],
+        "language": "JINJA",
+        "customParamsOrder": false,
+        "createTime": 1677397638173,
+        "lastUpdateTime": 1677443387722,
+        "latestVersionTime": 1677397638173,
+        "projectName": "DayN STIG Templates",
+        "validationErrors": {
+          "templateErrors": [],
+          "rollbackTemplateErrors": [],
+          "templateId": "0a5b0980-87b2-4d96-a830-099bcefea57e",
+          "templateVersion": null
+        },
+        "documentDatabase": false,
+        "projectAssociated": true
+      },
+      {
+        "name": "9.2 SNMP Config",
+        "description": "",
+        "tags": [],
+        "deviceTypes": [
+          {
+            "productFamily": "Switches and Hubs"
+          },
+          {
+            "productFamily": "Routers"
+          }
+        ],
+        "softwareType": "IOS",
+        "softwareVariant": "XE",
+        "templateContent": "{# Imports the code that executes the Site Local SNNMP templates is at the bottom of this file #}\n\nno snmp-server system-shutdown\nno snmp-server trap-timeout 180\nsnmp-server packetsize 1400\nsnmp-server queue-length 20\n!\n!\n{#\nAdd your custom SNMP view configurations\n\nsnmp-server view MGMTview XXXX\nsnmp-server view MGMTview XXXX\nsnmp-server view MGMTview XXXX\n#}\n\n! @start-ignore-compliance\nsnmp-server ifindex persist\n! @end-ignore-compliance\n\n\n{# Add your custom SNMPv3 groups\n\nsnmp-server group READgroup v3 priv read MGMTview access 1\nsnmp-server group WRITEgroup v3 priv write MGMTview access 2\nsnmp-server view READgroup iso included\nsnmp-server view WRITEgroup iso included\n#}\n{# Group DNACGROUPAuthPriv must remain.  It is automatically configured by DNA Center.  Below we add an ACL #}\nsnmp-server group DNACGROUPAuthPriv v3 priv read DNAC-ACCESS write DNAC-ACCESS access 3\nsnmp-server group DNACGROUPAuthPriv v3 priv context vlan- match prefix\nsnmp-server view DNAC-ACCESS iso included\n\n{# STIG ID: CISC-ND-001130 (CAT II) - The Cisco switch must be configured to authenticate SNMP messages using a FIPS-validated Keyed-Hash Message Authentication Code (HMAC). #}\n{# STIG ID: CISC-ND-001140 (CAT II) - The Cisco switch must be configured to encrypt SNMP messages using a FIPS 140-2 approved algorithm (AES 128,192,or 256). #}\n{# AES 128 is used for increased compatability to various products #}\n! @start-ignore-compliance\nsnmp-server user SNMP_READ READgroup v3 auth sha {{ ReadSha }} priv aes 128 {{ ReadPriv }} access 1\nsnmp-server user SNMP_WRITE WRITEgroup v3 auth sha {{ WriteSha }} priv aes 128 {{ WritePriv }} access 2\nsnmp-server user DNAC_SNMP_USER DNACGROUPAuthPriv v3 auth sha {{ DNACSha }} priv aes 128 {{ DNACpriv }} access 3\n! @end-ignore-compliance\n\n{# Adds site location and contact statements into the VTY ACL based on a dropdown list presented in the GUI during provisioning #}\n\n{% include \"Site Local Templates/SITE LOCAL SNMP CONFIGS\" %}\n\n{% for site in snmp_config %}\n{% if site == \"SITE1\" %}\n{{ site1_snmp_data() }}\n{% elif site == \"SITE2\" %}\n{{ site2_snmp_data() }}\n{% else %}\n{% endif %}\n{% endfor %}\n",
+        "rollbackTemplateContent": "",
+        "templateParams": [
+          {
+            "parameterName": "DNACSha",
+            "dataType": "STRING",
+            "defaultValue": "Add DNAC SHA Here",
+            "description": null,
+            "required": true,
+            "notParam": false,
+            "paramArray": false,
+            "instructionText": null,
+            "group": null,
+            "order": 5,
+            "customOrder": 0,
+            "selection": {
+              "selectionType": null,
+              "selectionValues": {},
+              "defaultSelectedValues": [],
+              "id": null
+            },
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "",
+            "displayName": null
+          },
+          {
+            "parameterName": "ReadSha",
+            "dataType": "STRING",
+            "defaultValue": "Add Read SHA Here",
+            "description": null,
+            "required": true,
+            "notParam": false,
+            "paramArray": false,
+            "instructionText": null,
+            "group": null,
+            "order": 1,
+            "customOrder": 0,
+            "selection": {
+              "selectionType": null,
+              "selectionValues": {},
+              "defaultSelectedValues": [],
+              "id": null
+            },
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "",
+            "displayName": null
+          },
+          {
+            "parameterName": "ReadPriv",
+            "dataType": "STRING",
+            "defaultValue": "Add Read Priv Here",
+            "description": null,
+            "required": true,
+            "notParam": false,
+            "paramArray": false,
+            "instructionText": null,
+            "group": null,
+            "order": 2,
+            "customOrder": 0,
+            "selection": {
+              "selectionType": null,
+              "selectionValues": {},
+              "defaultSelectedValues": [],
+              "id": null
+            },
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "",
+            "displayName": null
+          },
+          {
+            "parameterName": "WritePriv",
+            "dataType": "STRING",
+            "defaultValue": "Add Write Priv Here",
+            "description": null,
+            "required": true,
+            "notParam": false,
+            "paramArray": false,
+            "instructionText": null,
+            "group": null,
+            "order": 4,
+            "customOrder": 0,
+            "selection": {
+              "selectionType": null,
+              "selectionValues": {},
+              "defaultSelectedValues": [],
+              "id": null
+            },
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "",
+            "displayName": null
+          },
+          {
+            "parameterName": "WriteSha",
+            "dataType": "STRING",
+            "defaultValue": "Add Write SHA Here",
+            "description": null,
+            "required": true,
+            "notParam": false,
+            "paramArray": false,
+            "instructionText": null,
+            "group": null,
+            "order": 3,
+            "customOrder": 0,
+            "selection": {
+              "selectionType": null,
+              "selectionValues": {},
+              "defaultSelectedValues": [],
+              "id": null
+            },
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "",
+            "displayName": null
+          },
+          {
+            "parameterName": "DNACpriv",
+            "dataType": "STRING",
+            "defaultValue": "Add DNAC Priv Here",
+            "description": null,
+            "required": true,
+            "notParam": false,
+            "paramArray": false,
+            "instructionText": null,
+            "group": null,
+            "order": 6,
+            "customOrder": 0,
+            "selection": {
+              "selectionType": null,
+              "selectionValues": {},
+              "defaultSelectedValues": [],
+              "id": null
+            },
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "",
+            "displayName": null
+          },
+          {
+            "parameterName": "snmp_config",
+            "dataType": "STRING",
+            "defaultValue": null,
+            "description": null,
+            "required": true,
+            "notParam": false,
+            "paramArray": false,
+            "instructionText": null,
+            "group": null,
+            "order": 7,
+            "customOrder": 0,
+            "selection": {
+              "selectionType": "SINGLE_SELECT",
+              "selectionValues": {
+                "SITE1": "SITE1",
+                "SITE2": "SITE2"
+              },
+              "defaultSelectedValues": [],
+              "id": null
+            },
+            "range": [],
+            "key": null,
+            "provider": null,
+            "binding": "",
+            "displayName": "SNMP Config for Node"
+          }
+        ],
+        "rollbackTemplateParams": [],
+        "composite": false,
+        "containingTemplates": [],
+        "language": "JINJA",
+        "customParamsOrder": false,
+        "createTime": 1677397636956,
+        "lastUpdateTime": 1677445311132,
+        "latestVersionTime": 1677397636956,
+        "projectName": "DayN STIG Templates",
+        "validationErrors": {
+          "templateErrors": [],
+          "rollbackTemplateErrors": [],
+          "templateId": "de9917cc-6115-4f8a-bdc6-c1fc830b6d24",
+          "templateVersion": null
+        },
+        "documentDatabase": false,
+        "projectAssociated": true
+      },
+      {
+        "name": "7.1 Login Banner",
+        "description": "## STIG ID: CISC-ND-000160 (CAT II) - The Cisco switch must be configured to display the Standard Mandatory DoD Notice and Consent Banner before granting access to the device.",
+        "tags": [],
+        "deviceTypes": [
+          {
+            "productFamily": "Switches and Hubs"
+          },
+          {
+            "productFamily": "Routers"
+          }
+        ],
+        "softwareType": "IOS",
+        "softwareVariant": "XE",
+        "templateContent": "## STIG ID: CISC-ND-000160 (CAT II) - The Cisco switch must be configured to display the Standard Mandatory DoD Notice and Consent Banner before granting access to the device.\n\n! @start-ignore-compliance\nno banner exec\nno banner login\nno banner motd\n! @end-ignore-compliance\n\n<MLTCMD>banner login ^\nYOU ARE ACCESSING A U.S. GOVERNMENT (USG) INFORMATION SYSTEM (IS) THAT\nIS PROVIDED FOR USG-AUTHORIZED USE ONLY. BY USING THIS IS (WHICH\nINCLUDES ANY DEVICE ATTACHED TO THIS IS), YOU CONSENT TO THE FOLLOWING\nCONDITIONS:\n-THE USG ROUTINELY INTERCEPTS AND MONITORS COMMUNICATIONS ON THIS IS\nFOR PURPOSES INCLUDING, BUT NOT LIMITED TO, PENETRATION TESTING, COMSEC\nMONITORING, NETWORK OPERATIONS AND DEFENSE, PERSONAL MISCONDUCT (PM),\nLAW ENFORCEMENT (LE), AND COUNTERINTELLIGENCE (CI) INVESTIGATIONS.\n-AT ANY TIME, THE USG MAY INSPECT AND SEIZE DATA STORED ON THIS IS.\n-COMMUNICATIONS USING, OR DATA STORED ON, THIS IS ARE NOT PRIVATE, ARE\nSUBJECT TO ROUTINE MONITORING, INTERCEPTION, AND SEARCH, AND MAY BE\nDISCLOSED OR USED FOR ANY USG-AUTHORIZED PURPOSE. THIS IS INCLUDES\nSECURITY MEASURES (E.G., AUTHENTICATION AND ACCESS CONTROLS) TO PROTECT\nUSG INTERESTS--NOT FOR YOUR PERSONAL BENEFIT OR PRIVACY.\n-NOTWITHSTANDING THE ABOVE, USING THIS IS DOES NOT CONSTITUTE CONSENT\nTO PM, LE OR CI INVESTIGATIVE SEARCHING OR MONITORING OF THE CONTENT OF\nPRIVILEGED COMMUNICATIONS, OR WORK PRODUCT, RELATED TO PERSONAL\nREPRESENTATION OR SERVICES BY ATTORNEYS, PSYCHOTHERAPISTS, OR CLERGY,\nAND THEIR ASSISTANTS. SUCH COMMUNICATIONS AND WORK PRODUCT ARE PRIVATE\nAND CONFIDENTIAL. SEE USER AGREEMENT FOR DETAILS.\n^</MLTCMD>",
+        "rollbackTemplateContent": "",
+        "templateParams": [],
+        "rollbackTemplateParams": [],
+        "composite": false,
+        "containingTemplates": [],
+        "language": "VELOCITY",
+        "customParamsOrder": false,
+        "createTime": 1677397636729,
+        "lastUpdateTime": 1677444531885,
+        "latestVersionTime": 1677397636729,
+        "projectName": "DayN STIG Templates",
+        "validationErrors": {
+          "templateErrors": [],
+          "rollbackTemplateErrors": [],
+          "templateId": "d6d1e7e3-c250-43fe-9871-df9a0cdb000a",
+          "templateVersion": null
+        },
+        "documentDatabase": false,
+        "projectAssociated": true
+      }
+    ],
+    "isDeletable": true
+  }
+]

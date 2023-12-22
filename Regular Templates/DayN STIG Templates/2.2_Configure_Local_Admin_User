@@ -1,0 +1,44 @@
+{# STIG ID: CISC-ND-000490 (CAT II) - The Cisco switch must be configured with only one local account to be used as the account of last resort in the event the authentication server is unavailable. #}
+{# STIG ID: CISC-ND-000550 (CAT II) - The Cisco switch must be configured to enforce a minimum 15-character password length. #}
+{# STIG ID: CISC-ND-000570 (CAT II) - The Cisco switch must be configured to enforce password complexity by requiring that at least one upper-case character be used. #}
+{# STIG ID: CISC-ND-000580 (CAT II) - The Cisco switch must be configured to enforce password complexity by requiring that at least one lower-case character be used. #}
+{# STIG ID: CISC-ND-000590 (CAT II) - The Cisco switch must be configured to enforce password complexity by requiring that at least one numeric character be used. #}
+{# STIG ID: CISC-ND-000600 (CAT II) - The Cisco switch must be configured to enforce password complexity by requiring that at least one special character be used. #}
+{# STIG ID: CISC-ND-000610 (CAT II) - The Cisco switch must be configured to require that when a password is changed, the characters are changed in at least eight of the positions within the password. #}
+
+
+aaa common-criteria policy PW_POLICY
+ min-length 15
+ max-length 127
+ numeric-count 1
+ upper-case 1
+ lower-case 1
+ special-case 1
+ char-changes 8
+
+{# Admin will be presented a dropdown list to select a site for local username and password configuration #}
+{% include "Site Local Templates/Site Local Users" %}
+ 
+{% for site in site_user %}
+{% if site == "SITE1" %}
+{{ site1_user() }}
+{% elif site == "SITE2" %}
+{{ site2_user() }}
+{% else %}
+{% endif %}
+{% endfor %}
+
+{#  Alternate METHOD that requires users to input password when provisioning
+
+{% if softwareType == "IOS" %}
+! @start-ignore-compliance
+username local.user privilege 0 common-criteria-policy PW_POLICY secret {{ UserSecret }}
+username local.user algorithm-type sha256 secret {{ UserSecret }}
+! @end-ignore-compliance
+{% else softwareType == "IOS-XE" %}
+! @start-ignore-compliance
+username local.user privilege 0 common-criteria-policy PW_POLICY algorithm-type sha256 secret {{ UserSecret }}
+! @end-ignore-compliance
+{% endif %}
+
+#}

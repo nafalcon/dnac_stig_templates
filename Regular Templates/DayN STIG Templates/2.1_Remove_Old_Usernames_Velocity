@@ -1,0 +1,9 @@
+## STIG ID: CISC-ND-000490 (CAT II) - The Cisco switch must be configured with only one local account to be used as the account of last resort in the event the authentication server is unavailable.
+
+#INTERACTIVE
+## remove any potential unnecessary users from devices ##
+no username user1<IQ>confirm<R>y
+no username user2<IQ>confirm<R>y
+##Also remove the local dnac.user that may have been used for initial discovery ##
+no username dnac.user<IQ>confirm<R>y
+#ENDS_INTERACTIVE

@@ -1,0 +1,36 @@
+{# STIG ID: CISC-ND-001000 (CAT II) - The Cisco switch must be configured to generate an alert for all audit failure events. #}
+! @start-ignore-compliance
+logging on
+logging trap informational
+! @end-ignore-compliance
+
+logging userinfo
+{# STIG ID: CISC-ND-000980 (CAT II) - The Cisco switch must be configured to allocate audit record storage capacity in accordance with organization-defined audit record storage requirements. #}
+logging buffered 10000 informational
+logging facility local6
+!
+login on-failure log
+login on-success log
+!
+no logging console
+no logging monitor
+!
+!
+!
+{# Optional
+logging discriminator CHGNTFY severity includes 5 facility includes SYS mnemonics includes RELOAD|RESTART|CONFIG
+!
+
+logging host X.X.X.X discriminator CHGNTFY
+logging host X.X.X.X discriminator CHGNTFY
+#}
+
+{# STIG ID: CISC-ND-001450 (CAT I) - The Cisco switch must be configured to send log data to a central log server for the purpose of forwarding alerts to the administrators and the ISSO. #}
+{# Add Logging - The below provides the ability to leverage different ports for each device family if desired #}
+{% if devicefamily == "Routers" %}
+logging host X.X.X.X transport udp port XXX
+
+{% elif devicefamily == "Switches and Hubs" %}
+logging host X.X.X.X transport udp port XXX
+
+{% endif %}

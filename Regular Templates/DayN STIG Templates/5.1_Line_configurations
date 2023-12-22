@@ -1,0 +1,48 @@
+line con 0
+ exec-timeout 9 59
+ logging synchronous
+ ! @start-ignore-compliance
+ password {{ LinePassword }}
+ ! @end-ignore-compliance
+!
+{# STIG ID: CISC-ND-000140 (CAT II) - The Cisco switch must be configured to enforce approved authorizations for controlling the flow of management information within the device based on control policies. #}
+{# STIG ID: CISC-ND-000720 (CAT I) - The Cisco switch must be configured to terminate all network connections associated with device management after 10 minutes of inactivity. #}
+line vty 0 4
+ access-class 5 in
+ exec-timeout 9 59
+ transport input ssh
+ ! @start-ignore-compliance
+ password {{ LinePassword }}
+ no length
+ ! @end-ignore-compliance
+!
+line vty 5 15
+ access-class 5 in
+ exec-timeout 9 59
+ transport input ssh
+ ! @start-ignore-compliance
+ password {{ LinePassword }}
+ no length
+ ! @end-ignore-compliance
+
+{% if "9300" in deviceplatform %}
+line vty 16 31
+ access-class 5 in
+ exec-timeout 9 59
+ transport input ssh
+ ! @start-ignore-compliance
+ password {{ LinePassword }}
+ no length
+ ! @end-ignore-compliance
+{% endif %}
+!
+{# STIG ID: CISC-RT-000230 (CAT III) - The Cisco switch must be configured to disable the auxiliary port unless it is connected to a secured modem providing encryption and authentication. #}
+{% if devicefamily.matches("Routers") %}
+! @start-ignore-compliance
+line aux 0
+ transport input none
+ exec-timeout 0 1
+ no exec
+ password {{ LinePassword }}
+! @end-ignore-compliance
+{% endif %}

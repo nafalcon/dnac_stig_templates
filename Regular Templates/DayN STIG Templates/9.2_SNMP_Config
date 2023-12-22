@@ -1,0 +1,54 @@
+{# Imports the code that executes the Site Local SNNMP templates is at the bottom of this file #}
+
+no snmp-server system-shutdown
+no snmp-server trap-timeout 180
+snmp-server packetsize 1400
+snmp-server queue-length 20
+!
+!
+{#
+Add your custom SNMP view configurations
+
+snmp-server view MGMTview XXXX
+snmp-server view MGMTview XXXX
+snmp-server view MGMTview XXXX
+#}
+
+! @start-ignore-compliance
+snmp-server ifindex persist
+! @end-ignore-compliance
+
+
+{# Add your custom SNMPv3 groups
+
+snmp-server group READgroup v3 priv read MGMTview access 1
+snmp-server group WRITEgroup v3 priv write MGMTview access 2
+snmp-server view READgroup iso included
+snmp-server view WRITEgroup iso included
+#}
+{# Group DNACGROUPAuthPriv must remain.  It is automatically configured by DNA Center.  Below we add an ACL #}
+snmp-server group DNACGROUPAuthPriv v3 priv read DNAC-ACCESS write DNAC-ACCESS access 3
+snmp-server group DNACGROUPAuthPriv v3 priv context vlan- match prefix
+snmp-server view DNAC-ACCESS iso included
+
+{# STIG ID: CISC-ND-001130 (CAT II) - The Cisco switch must be configured to authenticate SNMP messages using a FIPS-validated Keyed-Hash Message Authentication Code (HMAC). #}
+{# STIG ID: CISC-ND-001140 (CAT II) - The Cisco switch must be configured to encrypt SNMP messages using a FIPS 140-2 approved algorithm (AES 128,192,or 256). #}
+{# AES 128 is used for increased compatability to various products #}
+! @start-ignore-compliance
+snmp-server user SNMP_READ READgroup v3 auth sha {{ ReadSha }} priv aes 128 {{ ReadPriv }} access 1
+snmp-server user SNMP_WRITE WRITEgroup v3 auth sha {{ WriteSha }} priv aes 128 {{ WritePriv }} access 2
+snmp-server user DNAC_SNMP_USER DNACGROUPAuthPriv v3 auth sha {{ DNACSha }} priv aes 128 {{ DNACpriv }} access 3
+! @end-ignore-compliance
+
+{# Adds site location and contact statements into the VTY ACL based on a dropdown list presented in the GUI during provisioning #}
+
+{% include "Site Local Templates/SITE LOCAL SNMP CONFIGS" %}
+
+{% for site in snmp_config %}
+{% if site == "SITE1" %}
+{{ site1_snmp_data() }}
+{% elif site == "SITE2" %}
+{{ site2_snmp_data() }}
+{% else %}
+{% endif %}
+{% endfor %}

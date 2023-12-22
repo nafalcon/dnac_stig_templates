@@ -1,0 +1,76 @@
+## STIG ID: CISC-ND-000620 (CAT I) - The Cisco switch must only store cryptographic representations of passwords.
+service password-encryption
+
+##password encryption aes
+##key config-key password-encrypt 
+
+service sequence-numbers
+service tcp-keepalives-in
+service tcp-keepalives-out
+service timestamps debug datetime msec show-timezone
+## STIG ID: CISC-ND-000280 (CAT II) - The Cisco switch must produce audit records containing information to establish when (date and time) the events occurred.
+service timestamps log datetime msec show-timezone
+
+## STIG ID: CISC-RT-000080 (CAT II) - The Cisco switch must not be configured to have any feature enabled that calls home to the vendor.
+no call-home
+
+## Creates a variable 'd' to represent a dollar sign in the encrypted enable secret
+! @start-ignore-compliance
+#set ($d = '$')
+## Ensure a sha256 password is used below.  Replace all dollar signs in the password string with ${d}
+enable secret 8 XXXXXXXX
+! @end-ignore-compliance
+
+## Use the below string in lieu of the above if you prefer inputting the enable secret using a variable
+##enable algorithm-type sha256 secret $EnableSecret
+
+## STIG ID: CISC-ND-001260 (CAT II) - The Cisco switch must be configured to generate audit records when successful/unsuccessful logon attempts occur.
+## STIG ID: CISC-RT-000150 (CAT II) - The Cisco switch must be configured to have Gratuitous ARP disabled on all external interfaces.
+## STIG ID: CISC-RT-000235 (CAT II) - The Cisco switch must be configured to have Cisco Express Forwarding enabled.
+ip dhcp bootp ignore
+ip icmp rate-limit unreachable 1000
+ip tcp synwait-time 10
+login on-failure log
+login on-success log
+no ip gratuitous-arps
+clock timezone GMT 0 0
+! @start-ignore-compliance
+no clock summer-time
+no ip source-route
+ip cef distributed
+! @end-ignore-compliance
+## no ip domain lookup - not configured due to required CRL checks
+## no ip name-server - not configured due to required CRL checks
+
+## STIG ID: CISC-ND-000090 (CAT II) - The Cisco switch must be configured to automatically audit account creation.
+## STIG ID: CISC-ND-000100 (CAT II) - The Cisco switch must be configured to automatically audit account modification.
+## STIG ID: CISC-ND-000100 (CAT II) - The Cisco switch must be configured to automatically audit account disabling actions.
+## STIG ID: CISC-ND-000120 (CAT II) - The Cisco switch must be configured to automatically audit account removal actions.
+## STIG ID: CISC-ND-000210 (CAT II) - The Cisco device must be configured to audit all administrator activity.
+## STIG ID: CISC-ND-000330 (CAT II) - The Cisco switch must be configured to generate audit records containing the full-text recording of privileged commands.
+## STIG ID: CISC-ND-000880 (CAT II) - The Cisco switch must be configured to automatically audit account enabling actions.
+## STIG ID: CISC-ND-001250 (CAT II) - The Cisco switch must be configured to generate log records when administrator privileges are deleted.
+## STIG ID: CISC-ND-001270 (CAT II) - The Cisco switch must be configured to generate log records for privileged activities.
+## Archive is disabled for switches due to stacked switch behavior with diseparate file systems.  Documented in bug ID CSCvc49871
+
+#if ($devicefamily.matches("Routers") )
+
+#MODE_ENABLE
+#INTERACTIVE
+mkdir flash:/archived_configs/<IQ>archived_configs<R>archived_configs
+#ENDS_INTERACTIVE
+#MODE_END_ENABLE
+
+archive
+ log config
+  logging enable
+! @start-ignore-compliance
+ path flash:/archived_configs/
+! @end-ignore-compliance
+#end 
+
+## THE BELOW IS LIKELY A DEFAULT CONFIGURATION ON NEWER DEVICES
+## STIG ID: CISC-ND-001220 (CAT II) - The Cisco switch must be configured to protect against known types of denial-of-service (DoS) attacks by employing organization-defined security safeguards. Control-Plane Policing (COPP)
+## STIG ID: CISC-RT-000120 (CAT II) - The Cisco switch must be configured to protect against or limit the effects of denial-of-service (DoS) attacks by employing control plane protection.
+## THE DEVICES ENROLL CERTS WITH DNAC.  THE CONFIG IS NOT PART OF THE TEMPLATES.
+## STIG ID: CISC-ND-001440 (CAT II) - The Cisco switch must be configured to obtain its public key certificates from an appropriate certificate policy through an approved service provider.

@@ -1,0 +1,9 @@
+{% macro site1_snmp_data() %}
+snmp-server location City, State
+snmp-server contact Network Team (Phone: XXX-XXX-XXXX)
+{% endmacro %}
+
+{% macro site2_snmp_data() %}
+snmp-server location City, State
+snmp-server contact Network Team (Phone: XXX-XXX-XXXX)
+{% endmacro %}

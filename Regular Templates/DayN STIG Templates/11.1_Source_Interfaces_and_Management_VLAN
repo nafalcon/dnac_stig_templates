@@ -1,0 +1,41 @@
+{# STIG ID: CISC-RT-000160 (CAT II) - The Cisco switch must be configured to have IP directed broadcast disabled on all interfaces. #}
+{# STIG ID: CISC-RT-000190 (CAT II) - The Cisco switch must be configured to have Internet Control Message Protocol (ICMP) redirect messages disabled on all external interfaces. #}
+{# ip redirects are being disabled, however this would only be a finding external interfaces #}
+{# STIG ID: CISC-RT-000380 (CAT II) - The Cisco perimeter switch must be configured to have Proxy ARP disabled on all external interfaces. #}
+{# ip proxy-arp is being disabled, however this would only be a finding external interfaces #}
+
+{% if devicefamily == "Routers" %}
+interface {{ ManagementInterface }}
+  no ip proxy-arp
+  no ip redirects
+ ! @start-ignore-compliance
+ no ip directed-broadcast
+ ! @end-ignore-compliance
+  
+logging source-interface {{ ManagementInterface }}
+
+flow exporter EXPORT_FLOW_1
+ source {{ ManagementInterface }}
+ 
+ntp source {{ ManagementInterface }}
+{% endif %}
+
+{% if devicefamily.matches("Switches and Hubs") %}
+interface Vlan{{ ManagementVlan }}
+ no ip redirects
+ no ip proxy-arp
+ ! @start-ignore-compliance
+ no ip directed-broadcast
+ ! @end-ignore-compliance
+  
+logging source-interface Vlan{{ ManagementVlan }}
+
+flow exporter EXPORTER
+ source Vlan{{ ManagementVlan }}
+ 
+ntp source Vlan{{ ManagementVlan }}
+
+{% endif %}
+  
+{# ONLY DISABLE IP UNREACHABLES ON EXTERNAL INTERFACES. DO NOT DISABLE THEM WITHIN A CAMPUS NETWORK AS IT WILL BREAK PTMTUD #}
+{# STIG ID: CISC-RT-000170 (CAT II) - The Cisco switch must be configured to have Internet Control Message Protocol (ICMP) unreachable messages disabled on all external interfaces. NOT A FINDING ON INTERNAL INTERFACES #}

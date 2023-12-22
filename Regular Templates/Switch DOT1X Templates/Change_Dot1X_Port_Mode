@@ -1,0 +1,90 @@
+{# If the admin selectes "Closed Mode", run the interface command to apply the closed auth profile #}
+
+{% if dot1x_port_mode == 'closed' %}
+{% for interface in interfaces %}
+
+{% if "AppGigabitEthernet" in interface.portName %}
+! @start-ignore-compliance
+interface {{interface.portName}}
+{#description Shutdown#}
+!Skipped
+! @end-ignore-compliance
+
+{% elif interface.interfaceType == "Physical" && interface.portMode != "trunk" && interface.portMode != "routed" %}
+interface {{interface.portName}}
+ ! @start-ignore-compliance
+ no ip access-group DOT1X_LOW_IMPACT in
+ ! @end-ignore-compliance
+ source template DOT1X_AUTHENTICATION_CLOSED
+{% endif %}
+{% endfor %}
+{% endif %}
+
+
+{# If the admin selectes "Low Impact Mode", run the interface commands to apply the open auth profile #}
+
+
+{% if dot1x_port_mode == 'low_impact' %}
+{% for interface in interfaces %}
+
+{% if "AppGigabitEthernet" in interface.portName %}
+! @start-ignore-compliance
+interface {{interface.portName}}
+{#description Shutdown#}
+!Skipped
+! @end-ignore-compliance
+
+{% elif interface.interfaceType == "Physical" && interface.portMode != "trunk" && interface.portMode != "routed" %}
+interface {{interface.portName}}
+ ip access-group DOT1X_LOW_IMPACT in
+ source template DOT1X_AUTHENTICATION_OPEN
+{% endif %}
+{% endfor %}
+{% endif %}
+
+
+{# If the admin selectes "Open Mode", run the interface command to apply the open auth profile #}
+
+{% if dot1x_port_mode == 'open' %}
+{% for interface in interfaces %}
+
+{% if "AppGigabitEthernet" in interface.portName %}
+! @start-ignore-compliance
+interface {{interface.portName}}
+{#description Shutdown#}
+!Skipped
+! @end-ignore-compliance
+
+{% elif interface.interfaceType == "Physical" && interface.portMode != "trunk" && interface.portMode != "routed" %}
+interface {{interface.portName}}
+ ! @start-ignore-compliance
+ no ip access-group DOT1X_LOW_IMPACT in
+ ! @end-ignore-compliance
+ source template DOT1X_AUTHENTICATION_OPEN
+{% endif %}
+{% endfor %}
+{% endif %}
+
+{# If the admin selectes "Remove Dot1X from Interfaces", run the interface commands to remove Dot1X #}
+
+{% if dot1x_port_mode == 'remove_dot1x' %}
+{% for interface in interfaces %}
+
+{% if "AppGigabitEthernet" in interface.portName %}
+! @start-ignore-compliance
+interface {{interface.portName}}
+{#description Shutdown#}
+!Skipped
+! @end-ignore-compliance
+
+{% elif interface.interfaceType == "Physical" && interface.portMode != "trunk" && interface.portMode != "routed" %}
+interface {{interface.portName}}
+ ! @start-ignore-compliance
+ no ip access-group DOT1X_LOW_IMPACT in
+ no source template DOT1X_AUTHENTICATION_OPEN
+ no source template DOT1X_AUTHENTICATION_CLOSED
+ ! @start-ignore-compliance
+{% endif %}
+{% endfor %}
+{% endif %}
+

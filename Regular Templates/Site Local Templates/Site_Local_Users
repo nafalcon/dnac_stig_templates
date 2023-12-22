@@ -1,0 +1,15 @@
+{# Use SHA256 encrypted password for the secret #}
+
+{% macro site1_user() %}
+! @start-ignore-compliance
+!SITE1
+username admin.user privilege 0 common-criteria-policy PW_POLICY secret 8 XXXXXXX
+! @end-ignore-compliance
+{% endmacro %}
+
+{% macro site2_user() %}
+! @start-ignore-compliance
+!SITE2
+username admin.user privilege 0 common-criteria-policy PW_POLICY secret 8 XXXXXXX
+! @end-ignore-compliance
+{% endmacro %}

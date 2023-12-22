@@ -1,0 +1,71 @@
+! @start-ignore-compliance
+no access-list 1
+! @end-ignore-compliance
+!
+ip access-list standard 1
+!
+! @start-ignore-compliance
+ remark SNMP READGroup access
+ permit X.X.X.X
+ permit X.X.X.X
+ permit X.X.X.X
+!
+ remark Stealthwatch SMC Servers
+ permit X.X.X.X
+ permit X.X.X.X
+ deny any log
+! @end-ignore-compliance
+!
+! @start-ignore-compliance
+ip access-list resequence 1 10 10
+! @end-ignore-compliance
+!
+!
+!
+! @start-ignore-compliance
+no access-list 2
+! @end-ignore-compliance
+!
+ip access-list standard 2
+! @start-ignore-compliance
+ remark SNMP WRITEgroup access
+ permit X.X.X.X
+ permit X.X.X.X
+ deny any log
+! @end-ignore-compliance
+!
+! @start-ignore-compliance
+ip access-list resequence 2 10 10
+! @end-ignore-compliance
+!
+!
+!
+! @start-ignore-compliance
+no access-list 3
+! @end-ignore-compliance
+!
+ip access-list standard 3
+! @start-ignore-compliance
+ remark DNAC and ISE SNMP access
+!
+ remark DNAC Servers
+ permit X.X.X.X
+ permit X.X.X.X
+ permit X.X.X.X
+!
+ remark ISE Servers
+ permit X.X.X.X
+ permit X.X.X.X
+ permit X.X.X.X
+ permit X.X.X.X
+ permit X.X.X.X
+!
+ remark PAC ISE Servers
+!
+ deny any log
+! @end-ignore-compliance
+!
+! @start-ignore-compliance
+ip access-list resequence 3 10 10
+! @end-ignore-compliance
+!

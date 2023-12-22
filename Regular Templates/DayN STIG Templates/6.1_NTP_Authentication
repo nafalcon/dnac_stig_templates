@@ -1,0 +1,10 @@
+{# STIG ID: CISC-ND-001150 (CAT II) - The Cisco switch must be configured to authenticate Network Time Protocol (NTP) sources using authentication that is cryptographically based. #}
+
+! @start-ignore-compliance
+no ntp
+! @end-ignore-compliance
+ntp authenticate
+! @start-ignore-compliance
+ntp authentication-key 2 md5 {{ NTPKey }}
+! @end-ignore-compliance
+ntp trusted-key 2

@@ -1,0 +1,68 @@
+{# Configure the data and voice vlans on all acccess ports of the switch. #}
+{# This will overwrite any current interface vlan configuration and is optional. #}
+
+{% if data_vlan != "" %}
+vlan {{ data_vlan }}
+{% if data_vlan_name != "" %}
+ name {{ data_vlan_name }}
+{% endif %}
+{% endif %}
+
+
+{% if voice_vlan != "" %}
+vlan {{ voice_vlan }}
+{% if voice_vlan_name != "" %}
+ name {{ voice_vlan_name }}
+{% endif %}
+{% endif %}
+
+{% for interface in __interface %}
+{% if interface.interfaceType == "Physical" && interface.portMode != "trunk" && interface.portMode != "routed" %}
+{% if data_vlan != "" or voice_vlan != "" %}
+interface {{ interface.portName }}
+{% if data_vlan != "" %}
+ switchport access vlan {{ data_vlan }}
+{% endif %}
+{% if voice_vlan != "" %}
+ switchport voice vlan {{ voice_vlan }}
+{% endif %}
+{% endif %}
+{% endif %}
+{% endfor %}
+
+{# Make sure the new vlans are added to any pruned trunks #}
+
+{% for interface in __interface %}
+{% if interface.interfaceType == "Physical" && interface.portMode == "trunk" or interface.interfaceType == "Virtual" && interface.portMode == "trunk" %}
+{% if data_vlan != "" or voice_vlan != "" %}
+interface {{ interface.portName }}
+{% if data_vlan != "" %}
+! @start-ignore-compliance
+ switchport trunk allowed vlan add {{ data_vlan }}
+! @end-ignore-compliance
+{% endif %}
+{% if voice_vlan != "" %}
+! @start-ignore-compliance
+ switchport trunk allowed vlan add {{ voice_vlan }}
+! @end-ignore-compliance
+{% endif %}
+{% endif %}
+{% endif %}
+{% endfor %}
+
+{# STIG ID: CISC-L2-000210 (CAT II) - The Cisco switch must have all disabled switch ports assigned to an unused VLAN. #}
+{% if unusedVLAN != "" %}
+! @start-ignore-compliance
+vlan {{ unusedVLAN }}
+ name UNUSED_VLAN
+ shutdown
+! @end-ignore-compliance
+{% for interface in __interface %}
+{% if interface.interfaceType == "Physical" && interface.portMode != "trunk" && interface.portMode != "routed" && interface.adminStatus == "DOWN" %}
+! @start-ignore-compliance
+interface {{ interface.portName }}
+ switchport access vlan {{ unusedVLAN }}
+! @end-ignore-compliance
+{% endif %}
+{% endfor %}
+{% endif %}

@@ -1,0 +1,9 @@
+{# STIG ID: CISC-ND-001030 (CAT II) - The Cisco switch must be configured to synchronize its clock with the primary and secondary time sources using redundant authoritative time sources. #}
+{# STIG ID: CISC-ND-001150 (CAT II) - The Cisco switch must be configured to authenticate Network Time Protocol (NTP) sources using authentication that is cryptographically based. #}
+
+{# Add your NTP servers #}
+ntp server X.X.X.X key 2
+ntp server X.X.X.X key 2
+ntp server X.X.X.X key 2 prefer
+ntp server X.X.X.X key 2 prefer
+

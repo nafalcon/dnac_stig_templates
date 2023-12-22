@@ -1,0 +1,112 @@
+{% for interface in interfaces %}
+{% if interface.interfaceType == "Physical" && interface.portMode == "trunk" %}
+
+! @start-ignore-compliance
+interface {{interface.portName}}
+ no access-session monitor
+! @end-ignore-compliance
+
+{% endif %}
+
+{# If the port description has the case insensitive word "LAN", then do not change it.  If it does not, then append it to the end. #}
+{% if interface.interfaceType == "Physical" && interface.portMode != "trunk" && interface.portMode != "routed" %}
+{% if  interface.description == ".*([L|l][A|a][N|n]).*" %} 
+interface {{interface.portName}}
+ description {{interface.description}}
+
+{## If the port description is blank, add "DOT1X HOST LAN PORT". #}
+{% elif  interface.description == "" %} 
+interface {{interface.portName}}
+ description DOT1X HOST PORT - lan
+
+{% elif %}
+interface {{interface.portName}}
+ description {{interface.description}} - lan
+{% endif %}
+{% endif %}
+
+{% if dot1x_port_mode == 'open' %}
+{% if interface.interfaceType == "Physical" && interface.portMode != "trunk" && interface.portMode != "routed" %}
+interface {{interface.portName}}
+ ! @start-ignore-compliance
+ no switchport port-security
+ no switchport port-security mac-address sticky
+ no switchport port-security aging time
+ no switchport port-security maximum
+ switchport mode access
+ no dot1x pae authenticator
+ no dot1x timeout tx-period 7
+ no mab
+ no access-session host-mode multi-domain
+ no access-session control-direction in
+ no access-session closed
+ no access-session port-control auto
+ no authentication periodic
+ no authentication timer reauthenticate server
+ no service-policy type control subscriber DOT1X_DEFAULT
+ no ip access-group DOT1X_LOW_IMPACT in
+ ! @end-ignore-compliance
+ switchport mode access
+ source template DOT1X_AUTHENTICATION_OPEN
+{% endif %}
+
+{% elif dot1x_port_mode == 'low_impact' %}
+{% if interface.interfaceType == "Physical" && interface.portMode != "trunk" && interface.portMode != "routed" %}
+interface {{interface.portName}}
+ ! @start-ignore-compliance
+ no switchport port-security
+ no switchport port-security mac-address sticky
+ no switchport port-security aging time
+ no switchport port-security maximum
+ switchport mode access
+ no dot1x pae authenticator
+ no dot1x timeout tx-period 7
+ no mab
+ no access-session host-mode multi-domain
+ no access-session control-direction in
+ no access-session closed
+ no access-session port-control auto
+ no authentication periodic
+ no authentication timer reauthenticate server
+ no service-policy type control subscriber DOT1X_DEFAULT
+ no ip access-group DOT1X_LOW_IMPACT in
+ ! @end-ignore-compliance
+ switchport mode access
+ ip access-group DOT1X_LOW_IMPACT in
+ source template DOT1X_AUTHENTICATION_OPEN
+{% endif %}
+
+{% elif dot1x_port_mode == 'closed' %}
+{% if interface.interfaceType == "Physical" && interface.portMode != "trunk" && interface.portMode != "routed" %}
+interface {{interface.portName}}
+ ! @start-ignore-compliance
+ no switchport port-security
+ no switchport port-security mac-address sticky
+ no switchport port-security aging time
+ no switchport port-security maximum
+ switchport mode access
+ no dot1x pae authenticator
+ no dot1x timeout tx-period 7
+ no mab
+ no access-session host-mode multi-domain
+ no access-session control-direction in
+ no access-session closed
+ no access-session port-control auto
+ no authentication periodic
+ no authentication timer reauthenticate server
+ no service-policy type control subscriber DOT1X_DEFAULT
+ no ip access-group DOT1X_LOW_IMPACT in
+ ! @end-ignore-compliance
+ switchport mode access
+ source template DOT1X_AUTHENTICATION_CLOSED
+{% endif %}
+{% endif %}
+
+{% if "AppGigabitEthernet" in interface.portName %}
+! @start-ignore-compliance
+interface {{interface.portName}}
+{#description Shutdown#}
+ shutdown
+! @end-ignore-compliance
+{% endif %}
+{% endfor %}

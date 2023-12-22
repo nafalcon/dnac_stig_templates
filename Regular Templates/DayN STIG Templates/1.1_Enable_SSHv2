@@ -1,0 +1,19 @@
+ip domain name domain.com
+
+{# STIG ID: CISC-ND-001200 (CAT I) - The Cisco switch must be configured to use FIPS-validated Keyed-Hash Message Authentication Code (HMAC) to protect the integrity of remote maintenance sessions. #}
+{# STIG ID: CISC-ND-001210 (CAT I) - The Cisco switch must be configured to implement cryptographic mechanisms to protect the confidentiality of remote maintenance sessions. #}
+
+ip ssh version 2
+ip ssh authentication-retries 2
+ip ssh time-out 10
+! @start-ignore-compliance
+ip ssh dh min size 2048
+! @end-ignore-compliance
+ip ssh server algorithm mac hmac-sha2-512 hmac-sha2-256
+ip ssh server algorithm encryption aes256-ctr aes192-ctr aes128-ctr
+ip ssh server algorithm kex diffie-hellman-group14-sha1
+
+! @start-ignore-compliance
+no ip ssh rsa keypair-name
+crypto key generate rsa general-keys modulus 2048
+! @end-ignore-compliance

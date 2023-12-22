@@ -1,0 +1,26 @@
+{# The below ACL is OPTIONAL #}
+{# DNA Center will automatically deploy a WEB_REDIRECT_ACL for posture assessment, however it redirects all web traffic. #}
+{# This ACL can be implemented while using the enroll.cisco.com discovery host IP in the ISE Posture profile to prevent user disruption during posture assessment #}
+
+! @start-ignore-compliance
+no ip access-list extended REDIRECT
+! @end-ignore-compliance
+
+ip access-list extended REDIRECT
+! @start-ignore-compliance
+ remark ISE Server IP Addresses
+ 10 deny   ip any host X.X.X.X
+ 20 deny   ip any host X.X.X.X
+ 30 deny   ip any host X.X.X.X
+ 40 deny   ip any host X.X.X.X
+ 50 deny   ip any host X.X.X.X
+ 60 deny   ip any host X.X.X.X
+ 70 deny   ip any host X.X.X.X
+ 80 deny   ip any host X.X.X.X
+{# The below IP is for enroll.cisco.com #}
+ 90 permit tcp any host 72.163.1.80 eq www
+ 100 permit tcp any host 72.163.1.80 eq 443
+ 110 permit tcp any host 72.163.1.80 eq 8443
+ 120 deny   udp any any eq domain
+ 130 deny   udp any eq bootpc any eq bootps
+! @end-ignore-compliance

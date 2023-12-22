@@ -1,0 +1,40 @@
+{# Update your VTP version configuration as necessary #}
+! @start-ignore-compliance
+vtp version 2
+! @end-ignore-compliance
+vtp mode transparent
+
+{#  STIG ID: CISC-L2-000030 (CAT II) - The Cisco switch must authenticate all VLAN Trunk Protocol (VTP) messages with a hash function using the most secured cryptographic algorithm available. #}
+
+{% if vtp_password != "" %}
+! @start-ignore-compliance
+vtp password {{ vtp_password }}
+! @end-ignore-compliance
+{% endif %}
+
+{# STIG ID: CISC-L2-000180 (CAT II) - The Cisco switch must implement Rapid Spanning Tree Protocol (STP) where #}
+{# STIG ID: CISC-L2-000110 (CAT II) - The Cisco switch must have STP Loop Guard enabled. (CAT II) #}
+{# STIG ID: CISC-L2-000100 (CAT II) - The Cisco switch must have BPDU Guard enabled on all user-facing or untrusted access switch ports. (CAT II) #}
+spanning-tree mode rapid-pvst
+spanning-tree loopguard default
+{% if device == "ACCESS" %}
+spanning-tree portfast default
+spanning-tree portfast bpduguard default
+errdisable recovery cause bpduguard
+errdisable recovery cause psecure-violation
+{% endif %}
+errdisable recovery interval 1800
+
+{# STIG ID: CISC-L2-000150 (NOT ENABLED - CAT II) - The Cisco switch must have Dynamic Address Resolution Protocol (ARP) Inspection (DAI) enabled on all user VLANs. #}
+{# DAI depends on the entries in the DHCP snooping binding database to verify IP-to-MAC address bindings in incoming ARP requests and ARP responses. #}
+{# DAI is not applied due to the potential negative impact to hosts with static IP's.  Implement with caution #}
+{# ip arp inspection vlan x,x-x #}
+
+{# STIG ID: CISC-L2-000170 (CAT III) - The Cisco switch must have IGMP or MLD Snooping configured on all VLANs. #}
+{# Enabled by deefault.  This re-enables IGMP snooping in-case it was disabled. #}
+! @start-ignore-compliance
+ip igmp snooping
+! @end-ignore-compliance
+
+{# STIG ID: CISC-L2-000190 (CAT II) - The Cisco switch must enable Unidirectional Link Detection (UDLD) to protect against one-way connections. #}
+udld enable

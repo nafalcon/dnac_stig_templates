@@ -1,0 +1,21 @@
+{# STIG ID: CISC-L2-000130 - The Cisco switch must have DHCP snooping (CAT II) #}
+{## for all user VLANs to validate DHCP messages from untrusted sources. ##}
+{% if device == "ACCESS" %}
+ip dhcp snooping vlan 1-4094
+no ip dhcp snooping information option
+{# DHCP snooping database disabled due to stacked switch behavior with diseparate file systems.  Documented in bug ID CSCvc49871 #}
+{# ip dhcp snooping database flash:DHCP_SNOOPING_DB #}
+ip dhcp snooping
+
+{% endif %}
+
+
+{% for interface in __interface %}
+{% if device == "ACCESS" %}
+{% if interface.interfaceType == "Physical" && interface.portMode == "trunk" or interface.interfaceType == "Virtual" && interface.portMode == "trunk" %}
+interface {{ interface.portName }}
+ ip dhcp snooping trust
+
+{% endif %}
+{% endif %}
+{% endfor %}

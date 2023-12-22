@@ -1,0 +1,43 @@
+netconf-yang
+
+{% if softwaretype == "IOS-XE" %}
+! @start-ignore-compliance
+no ip access-list standard NETCONF_DNAC_ACL
+! @end-ignore-compliance
+!
+ip access-list standard NETCONF_DNAC_ACL
+!
+! @start-ignore-compliance
+ remark DNAC Servers
+ permit X.X.X.X log
+ permit X.X.X.X log
+ permit X.X.X.X log
+!
+ deny any log
+!
+ip access-list resequence NETCONF_DNAC_ACL 10 10
+! @end-ignore-compliance
+
+netconf-yang ssh ipv4 access-list name NETCONF_DNAC_ACL
+
+{% else softwaretype == "IOS" %}
+! @start-ignore-compliance
+no access-list 55
+! @end-ignore-compliance
+!
+ip access-list standard 55
+!
+! @start-ignore-compliance
+ remark DNAC Servers
+ permit X.X.X.X log
+ permit X.X.X.X log
+ permit X.X.X.X log
+!
+ deny any log
+!
+ip access-list resequence 55 10 10
+! @end-ignore-compliance
+
+netconf ssh acl 55 
+
+{% endif %}

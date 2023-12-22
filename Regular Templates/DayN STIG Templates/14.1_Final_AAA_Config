@@ -1,0 +1,44 @@
+{## DNAC initially applies additional AAA config to what is represented below. Some may also overlap. ##}
+{## Some may need to be modified for your environment, however the below dnac groups must remain #}
+
+{# STIG ID: CISC-ND-001370 (CAT I) - The Cisco switch must be configured to use an authentication server for the purpose of authenticating users prior to granting administrative access. #}
+
+aaa accounting update newinfo
+aaa accounting commands 0 default stop-only group dnac-network-tacacs-group
+aaa accounting commands 15 default start-stop group dnac-network-tacacs-group
+{#aaa accounting connection default start-stop group dnac-network-tacacs-group#}
+aaa accounting system default start-stop group dnac-network-tacacs-group
+{# Required for Netconf TACACS access #}
+aaa authentication enable default group dnac-network-tacacs-group none
+
+aaa authentication login default group dnac-network-tacacs-group local
+{# Required for Netconf TACACS access #}
+aaa authorization exec default group dnac-network-tacacs-group if-authenticated
+
+aaa authorization commands 0 default group dnac-network-tacacs-group if-authenticated
+aaa authorization commands 15 default group dnac-network-tacacs-group if-authenticated
+aaa authorization console
+aaa authorization config-commands
+
+line con 0
+ authorization exec VTY_author
+ login authentication VTY_authen
+ 
+line vty 0 4
+ authorization exec VTY_author
+ login authentication VTY_authen
+ 
+line vty 5 15
+ authorization exec VTY_author
+ login authentication VTY_authen
+ 
+{% if "9300" in deviceplatform %}
+line vty 16 31
+ authorization exec VTY_author
+ login authentication VTY_authen
+{% endif %}
+
+{# STIG ID: CISC-ND-000150 (CAT II) - The Cisco switch must be configured to enforce the limit of three consecutive invalid logon attempts, after which time it must lock out the user account from accessing the device for 15 minutes. #}
+{# Enable if desired
+login block-for 900 attempts 3 within 120
+#}

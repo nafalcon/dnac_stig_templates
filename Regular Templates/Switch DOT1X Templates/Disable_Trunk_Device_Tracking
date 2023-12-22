@@ -1,0 +1,26 @@
+{% if softwaretype == "IOS-XE" %}
+! @start-ignore-compliance
+no device-tracking logging packet drop
+no device-tracking logging resolution-veto
+no device-tracking logging theft
+! @end-ignore-compliance
+
+device-tracking policy TRUNK
+ trusted-port
+ device-role switch
+ no protocol udp
+ tracking disable
+{% for interface in __interface %}
+{% if interface.interfaceType == "Physical" && interface.portMode == "trunk" %}
+interface {{ interface.portName }}
+ device-tracking attach-policy TRUNK
+{% endif %}
+{% endfor %}
+{% elif softwaretype == "IOS" %}
+{% for interface in __interface %}
+{% if interface.interfaceType == "Physical" && interface.portMode == "trunk" %}
+interface {{ interface.portName }}
+ ip device tracking maximum 0
+{% endif %}
+{% endfor %}
+{% endif %}

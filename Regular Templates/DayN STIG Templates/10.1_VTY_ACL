@@ -1,0 +1,49 @@
+{# The code the executes the Site Local templates is at the bottom of this file #}
+{# Base ACL is applied first.  Optional local component/tsoc permit statements subsequently applied #}
+
+! @start-ignore-compliance
+no access-list 5
+! @end-ignore-compliance
+
+ip access-list standard 5
+! @start-ignore-compliance
+ remark Network Engineers
+ permit X.X.X.X 0.0.0.7 log
+ remark DNAC Servers
+ permit X.X.X.X log
+ permit X.X.X.X log
+ permit X.X.X.X log
+ permit X.X.X.X log
+ remark Jump Servers
+ permit X.X.X.X log
+ permit X.X.X.X log
+ permit X.X.X.X log
+ permit X.X.X.X log
+ remark Network Tools
+ permit X.X.X.X log
+ permit X.X.X.X log
+ permit X.X.X.X log
+ permit X.X.X.X log
+ deny   any log
+!
+ip access-list resequence 5 10 10
+! @end-ignore-compliance
+
+
+{% include "Site Local Templates/SITE1 VTY ACL" %}
+{% include "Site Local Templates/SITE2 VTY ACL" %}
+{# include "Site Local Templates/SITE3 VTY ACL" #}
+{# include "Site Local Templates/SITE4 VTY ACL" #}
+{# include "Site Local Templates/SITE5 VTY ACL" #}
+
+{# Adds local site permit statements into the VTY ACL based on a dropdown list presented in the GUI during provisioning#}
+{# Multiple sites can be selected during provisioning #}
+
+{% for site in site_vty %}
+{% if site == "site1" %}
+{{ site1_vty_acl() }}
+{% elif site == "site2" %}
+{{ site2_vty_acl() }}
+{% else %}
+{% endif %}
+{% endfor %}

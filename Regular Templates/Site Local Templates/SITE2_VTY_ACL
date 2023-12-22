@@ -1,0 +1,13 @@
+{% macro site2_vty_acl() %}
+! @start-ignore-compliance
+ip access-list resequence 5 10 10
+!
+ 
+ip access-list standard 5
+ remark SITE2 NETWORK ADMINS
+ 1 permit X.X.X.X X.X.X.X log
+ 2 permit X.X.X.X X.X.X. log
+!
+ip access-list resequence 5 10 10
+! @end-ignore-compliance
+{% endmacro %}
